@@ -6,6 +6,9 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: false,
+})
 const { isLoaded, isSignedIn } = useAuth()
 
 watchEffect(() => {
