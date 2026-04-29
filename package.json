@@ -11,9 +11,12 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@clerk/nuxt": "^2.2.8",
     "@iconify-json/lucide": "^1.2.104",
     "@iconify-json/simple-icons": "^1.2.80",
     "@nuxt/ui": "^4.7.0",
+    "convex": "^1.36.1",
+    "convex-nuxt": "^0.1.5",
     "nuxt": "^4.4.2",
     "tailwindcss": "^4.2.4"
   },

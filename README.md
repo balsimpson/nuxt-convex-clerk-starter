@@ -67,3 +67,9 @@ Install [Renovate GitHub app](https://github.com/apps/renovate/installations/sel
 
 
 Install Nuxt Ui Starter template
+
+Install Convex
+- run npx convex dev
+- create a project or choose existing
+- install convex & convex-nuxt
+
