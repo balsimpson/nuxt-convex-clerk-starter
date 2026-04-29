@@ -73,3 +73,9 @@ Install Convex
 - create a project or choose existing
 - install convex & convex-nuxt
 
+- create application on Clerk
+- add keys to .env
+- install @clerk/nuxt
+- add to modules in nuxt config
+- add sign-in page
+- add middleware
