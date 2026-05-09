@@ -11,28 +11,25 @@ useHead({
   }
 })
 
-const title = 'Nuxt Starter Template'
-const description = 'A production-ready starter template powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours.'
+const title = 'Navarasa'
+const description = 'Navarasa creatives landing page with a dark, high-contrast aesthetic and protected admin routes.'
 
 useSeoMeta({
   title,
   description,
   ogTitle: title,
   ogDescription: description,
-  ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/starter-light.png',
+  ogImage: 'https://www.navarasacreatives.com/images/nava.png',
   twitterCard: 'summary_large_image'
 })
 </script>
 
 <template>
   <UApp>
-    
-
     <UMain>
       <NuxtLayout>
         <NuxtPage />
       </NuxtLayout>
     </UMain>
-
   </UApp>
 </template>

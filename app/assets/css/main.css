@@ -1,6 +1,25 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* ── SortableJS drag styles ─────────────────────────────────── */
+
+/* Ghost slot: the dimmed placeholder left in the list while dragging */
+.drag-ghost-slot {
+  opacity: 0.35;
+  background: color-mix(in srgb, var(--color-primary-500) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary-500) 30%, transparent) !important;
+  border-radius: 0.5rem;
+}
+
+/* Floating clone: the card that follows the cursor */
+.drag-floating {
+  opacity: 0.95 !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  transform: scale(1.015) rotate(0.3deg) !important;
+  border-radius: 0.5rem;
+  cursor: grabbing !important;
+}
+
 @theme static {
   --font-sans: 'Public Sans', sans-serif;
 

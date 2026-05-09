@@ -18,7 +18,8 @@
     "convex": "^1.36.1",
     "convex-nuxt": "^0.1.5",
     "nuxt": "^4.4.2",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",

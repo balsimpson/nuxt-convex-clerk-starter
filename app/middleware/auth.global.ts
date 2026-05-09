@@ -1,12 +1,11 @@
-// middleware/auth.global.ts
 export default defineNuxtRouteMiddleware((to) => {
   const { isLoaded, isSignedIn } = useAuth()
 
-  const publicRoutes = ['/sign-in']
+  const isAdminRoute = to.path === '/admin' || to.path.startsWith('/admin/')
 
   if (!isLoaded.value) return
 
-  if (publicRoutes.includes(to.path)) return
+  if (!isAdminRoute) return
 
   if (!isSignedIn.value) {
     return navigateTo('/sign-in')

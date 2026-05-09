@@ -8,13 +8,27 @@
  * @module
  */
 
+import type * as admin from "../admin.js";
+import type * as awards from "../awards.js";
+import type * as lib_sortOrder from "../lib/sortOrder.js";
+import type * as portfolio from "../portfolio.js";
+import type * as portfolioPrefill from "../portfolioPrefill.js";
+import type * as teamMembers from "../teamMembers.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
+  awards: typeof awards;
+  "lib/sortOrder": typeof lib_sortOrder;
+  portfolio: typeof portfolio;
+  portfolioPrefill: typeof portfolioPrefill;
+  teamMembers: typeof teamMembers;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.
