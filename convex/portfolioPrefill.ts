@@ -15,11 +15,18 @@ type Env = {
 const prefillResultValidator = v.object({
   client: optionalString,
   productionHouse: optionalString,
+  creativeHead: optionalString,
+  agencyHead: optionalString,
+  servicing: optionalString,
   executiveProducer: optionalString,
   associateProducer: optionalString,
   productionDesigner: optionalString,
   lineProducer: optionalString,
   juniorProducer: optionalString,
+  productionManager: optionalString,
+  associateDirector: optionalString,
+  assistantDirectors: optionalString,
+  modelCoordinators: optionalString,
   costumeStylist: optionalString,
   makeup: optionalString,
   hair: optionalString,
@@ -29,6 +36,8 @@ const prefillResultValidator = v.object({
   focusPuller: optionalString,
   editor: optionalString,
   musicDirector: optionalString,
+  di: optionalString,
+  cg: optionalString,
   vfx: optionalString,
   colorist: optionalString,
   soundFxAndMixing: optionalString,
@@ -46,17 +55,6 @@ const prefillResultValidator = v.object({
   description: optionalString,
   notes: optionalString
 })
-
-function parseJsonObject(content: string) {
-  const trimmed = content.trim()
-  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)
-  const candidate = fenced?.[1]?.trim() ?? trimmed
-  const start = candidate.indexOf('{')
-  const end = candidate.lastIndexOf('}')
-  const jsonText = start >= 0 && end > start ? candidate.slice(start, end + 1) : candidate
-
-  return JSON.parse(jsonText) as Record<string, unknown>
-}
 
 function normalizeString(value: unknown) {
   if (typeof value !== 'string') return undefined
@@ -90,6 +88,98 @@ function normalizeYear(value: unknown) {
   return undefined
 }
 
+const prefillJsonSchema = {
+  type: 'object' as const,
+  strict: true,
+  properties: {
+    client: { type: 'string', description: 'Client company name' },
+    productionHouse: { type: 'string', description: 'Production house name' },
+    creativeHead: { type: 'string', description: 'Creative head' },
+    agencyHead: { type: 'string', description: 'Agency head' },
+    servicing: { type: 'string', description: 'Servicing team members' },
+    executiveProducer: { type: 'string', description: 'Executive producer' },
+    associateProducer: { type: 'string', description: 'Associate producer' },
+    productionDesigner: { type: 'string', description: 'Production designer' },
+    lineProducer: { type: 'string', description: 'Line producer' },
+    juniorProducer: { type: 'string', description: 'Junior producer' },
+    productionManager: { type: 'string', description: 'Production manager' },
+    associateDirector: { type: 'string', description: 'Associate director' },
+    assistantDirectors: { type: 'string', description: 'Assistant directors' },
+    modelCoordinators: { type: 'string', description: 'Model coordinators' },
+    costumeStylist: { type: 'string', description: 'Costume stylist' },
+    makeup: { type: 'string', description: 'Makeup artist' },
+    hair: { type: 'string', description: 'Hair stylist' },
+    firstAD: { type: 'string', description: 'First assistant director' },
+    secondAD: { type: 'string', description: 'Second assistant director' },
+    firstAC: { type: 'string', description: 'First assistant camera' },
+    focusPuller: { type: 'string', description: 'Focus puller' },
+    editor: { type: 'string', description: 'Editor' },
+    musicDirector: { type: 'string', description: 'Music director' },
+    di: { type: 'string', description: 'Digital intermediate studio or artist' },
+    cg: { type: 'string', description: 'CG / CGI team' },
+    vfx: { type: 'string', description: 'VFX team' },
+    colorist: { type: 'string', description: 'Colorist' },
+    soundFxAndMixing: { type: 'string', description: 'Sound FX and mixing' },
+    assistantEditor: { type: 'string', description: 'Assistant editor' },
+    postTeam: { type: 'string', description: 'Post production team' },
+    account: { type: 'string', description: 'Account / client services' },
+    category: { type: 'string', description: 'Category: choose one of TVC, Brand Film, Corporate Film, Digital Film, Music Video, Documentary, Short Film, Feature Film, Promo, Social Media Content. If uncertain, infer from context or use the closest match.' },
+    tags: { type: 'array', items: { type: 'string' }, description: 'Relevant tags' },
+    brand: { type: 'string', description: 'Brand name' },
+    agency: { type: 'string', description: 'Agency name' },
+    director: { type: 'string', description: 'Director' },
+    dop: { type: 'string', description: 'Director of photography' },
+    producer: { type: 'string', description: 'Producer' },
+    year: { type: 'number', description: 'Release year' },
+    description: { type: 'string', description: 'Short description suitable for a portfolio card' },
+    notes: { type: 'string', description: 'Any extra information that does not fit other fields' }
+  },
+  required: [
+    'client',
+    'productionHouse',
+    'creativeHead',
+    'agencyHead',
+    'servicing',
+    'executiveProducer',
+    'associateProducer',
+    'productionDesigner',
+    'lineProducer',
+    'juniorProducer',
+    'productionManager',
+    'associateDirector',
+    'assistantDirectors',
+    'modelCoordinators',
+    'costumeStylist',
+    'makeup',
+    'hair',
+    'firstAD',
+    'secondAD',
+    'firstAC',
+    'focusPuller',
+    'editor',
+    'musicDirector',
+    'di',
+    'cg',
+    'vfx',
+    'colorist',
+    'soundFxAndMixing',
+    'assistantEditor',
+    'postTeam',
+    'account',
+    'category',
+    'tags',
+    'brand',
+    'agency',
+    'director',
+    'dop',
+    'producer',
+    'year',
+    'description',
+    'notes'
+  ] as string[],
+  additionalProperties: false
+}
+
 export const prefillFromYoutubeDescription = action({
   args: {
     description: v.string(),
@@ -121,18 +211,34 @@ export const prefillFromYoutubeDescription = action({
       body: JSON.stringify({
         model: env.OPENAI_MODEL ?? 'gpt-4o-mini',
         temperature: 0.2,
-        response_format: { type: 'json_object' },
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'portfolioPrefill',
+            strict: true,
+            schema: prefillJsonSchema
+          }
+        },
         messages: [
           {
             role: 'system',
             content: [
               'You extract portfolio form defaults from YouTube descriptions for a video production company.',
-              'Return only valid JSON with these keys: client, productionHouse, brand, agency, director, dop, producer, executiveProducer, associateProducer, productionDesigner, lineProducer, juniorProducer, costumeStylist, makeup, hair, firstAD, secondAD, firstAC, focusPuller, editor, musicDirector, vfx, colorist, soundFxAndMixing, assistantEditor, postTeam, account, category, tags, year, description, notes.',
+              'Return only valid JSON matching the provided schema.',
               'Use only information that is supported by the source text.',
-              'Keep combined credit lines intact as a single string when the source combines multiple names.',
-              'Put information that does not fit the portfolio schema into notes.',
+              'Read the source carefully line by line, and prioritise explicit credit labels over loose inference.',
+              'When the text contains credits in the form "Label: value", map each labeled value to the closest schema field and copy the value exactly as written.',
+              'If multiple labeled credits appear in one sentence separated by commas, still treat them as separate labeled fields.',
+              'If one labeled value contains multiple names, keep them together in one string in the same order as the source.',
+              'Map close label variants carefully: Creative Head -> creativeHead, Agency Head -> agencyHead, Servicing -> servicing, Associate Director -> associateDirector, Assistant Director or Assistant Directors -> assistantDirectors, Model Coordinator or Model Coordinators -> modelCoordinators, Production Manager -> productionManager, DI or Digital Intermediate -> di, CG or CGI -> cg, Account or Client Services -> account, DOP or Director of Photography -> dop.',
+              'Do not omit or move a clearly labeled credit into notes when a matching schema field exists.',
+              'Only use notes for information that truly has no matching field.',
               'Keep description short and suitable for a portfolio card or detail page.',
-              'Use concise tags, and omit any field you cannot confidently infer.'
+              'Always generate at least 3-6 concise tags based on the content, genre, tone, industry, or notable visuals.',
+              'Always infer and set a category from: TVC, Brand Film, Corporate Film, Digital Film, Music Video, Documentary, Short Film, Feature Film, Promo, or Social Media Content. Prefer explicit clues in the title or description, otherwise infer from context.',
+              'Omit any other field you cannot confidently infer.',
+              'Example source: "Creative Head: Prathap Suthan, Agency Head: Naresh Gupta, Servicing: Anvika Raghav and Amarpreet Singh, Model Coordinator: Anish Impulse, Mohith, DI: Aby Tad Studios, CG: Tony Magmyth, Production Manager: Sreekuttan KS"',
+              'Example JSON: {"creativeHead":"Prathap Suthan","agencyHead":"Naresh Gupta","servicing":"Anvika Raghav and Amarpreet Singh","modelCoordinators":"Anish Impulse, Mohith","di":"Aby Tad Studios","cg":"Tony Magmyth","productionManager":"Sreekuttan KS","category":"TVC","tags":["automotive","action","lifestyle","cinematic"]}'
             ].join(' ')
           },
           {
@@ -158,27 +264,30 @@ export const prefillFromYoutubeDescription = action({
       choices?: Array<{
         message?: {
           content?: string | null
+          parsed?: Record<string, unknown> | null
         }
       }>
     }
 
-    const content = payload.choices?.[0]?.message?.content
-
-    if (!content) {
-      throw new Error('OpenAI response did not include any content')
-    }
-
-    const parsed = parseJsonObject(content)
+    const parsed = payload.choices?.[0]?.message?.parsed
+      ?? JSON.parse(payload.choices?.[0]?.message?.content ?? '{}') as Record<string, unknown>
 
     const result: {
       tags: string[]
       client?: string
       productionHouse?: string
+      creativeHead?: string
+      agencyHead?: string
+      servicing?: string
       executiveProducer?: string
       associateProducer?: string
       productionDesigner?: string
       lineProducer?: string
       juniorProducer?: string
+      productionManager?: string
+      associateDirector?: string
+      assistantDirectors?: string
+      modelCoordinators?: string
       costumeStylist?: string
       makeup?: string
       hair?: string
@@ -188,6 +297,8 @@ export const prefillFromYoutubeDescription = action({
       focusPuller?: string
       editor?: string
       musicDirector?: string
+      di?: string
+      cg?: string
       vfx?: string
       colorist?: string
       soundFxAndMixing?: string
@@ -212,7 +323,12 @@ export const prefillFromYoutubeDescription = action({
     const productionHouse = normalizeString(parsed.productionHouse)
     const brand = normalizeString(parsed.brand)
     const agency = normalizeString(parsed.agency)
+    const creativeHead = normalizeString(parsed.creativeHead)
+    const agencyHead = normalizeString(parsed.agencyHead)
+    const servicing = normalizeString(parsed.servicing)
     const director = normalizeString(parsed.director)
+    const associateDirector = normalizeString(parsed.associateDirector)
+    const assistantDirectors = normalizeString(parsed.assistantDirectors)
     const dop = normalizeString(parsed.dop)
     const producer = normalizeString(parsed.producer)
     const executiveProducer = normalizeString(parsed.executiveProducer)
@@ -220,6 +336,8 @@ export const prefillFromYoutubeDescription = action({
     const productionDesigner = normalizeString(parsed.productionDesigner)
     const lineProducer = normalizeString(parsed.lineProducer)
     const juniorProducer = normalizeString(parsed.juniorProducer)
+    const productionManager = normalizeString(parsed.productionManager)
+    const modelCoordinators = normalizeString(parsed.modelCoordinators)
     const costumeStylist = normalizeString(parsed.costumeStylist)
     const makeup = normalizeString(parsed.makeup)
     const hair = normalizeString(parsed.hair)
@@ -229,6 +347,8 @@ export const prefillFromYoutubeDescription = action({
     const focusPuller = normalizeString(parsed.focusPuller)
     const editor = normalizeString(parsed.editor)
     const musicDirector = normalizeString(parsed.musicDirector)
+    const di = normalizeString(parsed.di)
+    const cg = normalizeString(parsed.cg)
     const vfx = normalizeString(parsed.vfx)
     const colorist = normalizeString(parsed.colorist)
     const soundFxAndMixing = normalizeString(parsed.soundFxAndMixing)
@@ -244,7 +364,12 @@ export const prefillFromYoutubeDescription = action({
     if (productionHouse) result.productionHouse = productionHouse
     if (brand) result.brand = brand
     if (agency) result.agency = agency
+    if (creativeHead) result.creativeHead = creativeHead
+    if (agencyHead) result.agencyHead = agencyHead
+    if (servicing) result.servicing = servicing
     if (director) result.director = director
+    if (associateDirector) result.associateDirector = associateDirector
+    if (assistantDirectors) result.assistantDirectors = assistantDirectors
     if (dop) result.dop = dop
     if (producer) result.producer = producer
     if (executiveProducer) result.executiveProducer = executiveProducer
@@ -252,6 +377,8 @@ export const prefillFromYoutubeDescription = action({
     if (productionDesigner) result.productionDesigner = productionDesigner
     if (lineProducer) result.lineProducer = lineProducer
     if (juniorProducer) result.juniorProducer = juniorProducer
+    if (productionManager) result.productionManager = productionManager
+    if (modelCoordinators) result.modelCoordinators = modelCoordinators
     if (costumeStylist) result.costumeStylist = costumeStylist
     if (makeup) result.makeup = makeup
     if (hair) result.hair = hair
@@ -261,6 +388,8 @@ export const prefillFromYoutubeDescription = action({
     if (focusPuller) result.focusPuller = focusPuller
     if (editor) result.editor = editor
     if (musicDirector) result.musicDirector = musicDirector
+    if (di) result.di = di
+    if (cg) result.cg = cg
     if (vfx) result.vfx = vfx
     if (colorist) result.colorist = colorist
     if (soundFxAndMixing) result.soundFxAndMixing = soundFxAndMixing
