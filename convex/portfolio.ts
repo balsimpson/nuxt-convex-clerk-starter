@@ -14,18 +14,11 @@ const createPortfolioArgs = {
   thumbnailUrl: optionalString,
   client: optionalString,
   productionHouse: optionalString,
-  creativeHead: optionalString,
-  agencyHead: optionalString,
-  servicing: optionalString,
   executiveProducer: optionalString,
   associateProducer: optionalString,
   productionDesigner: optionalString,
   lineProducer: optionalString,
   juniorProducer: optionalString,
-  productionManager: optionalString,
-  associateDirector: optionalString,
-  assistantDirectors: optionalString,
-  modelCoordinators: optionalString,
   costumeStylist: optionalString,
   makeup: optionalString,
   hair: optionalString,
@@ -35,8 +28,6 @@ const createPortfolioArgs = {
   focusPuller: optionalString,
   editor: optionalString,
   musicDirector: optionalString,
-  di: optionalString,
-  cg: optionalString,
   vfx: optionalString,
   colorist: optionalString,
   soundFxAndMixing: optionalString,
@@ -66,18 +57,11 @@ const updatePortfolioArgs = {
   thumbnailUrl: optionalString,
   client: optionalString,
   productionHouse: optionalString,
-  creativeHead: optionalString,
-  agencyHead: optionalString,
-  servicing: optionalString,
   executiveProducer: optionalString,
   associateProducer: optionalString,
   productionDesigner: optionalString,
   lineProducer: optionalString,
   juniorProducer: optionalString,
-  productionManager: optionalString,
-  associateDirector: optionalString,
-  assistantDirectors: optionalString,
-  modelCoordinators: optionalString,
   costumeStylist: optionalString,
   makeup: optionalString,
   hair: optionalString,
@@ -87,8 +71,6 @@ const updatePortfolioArgs = {
   focusPuller: optionalString,
   editor: optionalString,
   musicDirector: optionalString,
-  di: optionalString,
-  cg: optionalString,
   vfx: optionalString,
   colorist: optionalString,
   soundFxAndMixing: optionalString,
@@ -241,18 +223,11 @@ export const create = mutation({
       thumbnailUrl: args.thumbnailUrl,
       client: args.client,
       productionHouse: args.productionHouse,
-      creativeHead: args.creativeHead,
-      agencyHead: args.agencyHead,
-      servicing: args.servicing,
       executiveProducer: args.executiveProducer,
       associateProducer: args.associateProducer,
       productionDesigner: args.productionDesigner,
       lineProducer: args.lineProducer,
       juniorProducer: args.juniorProducer,
-      productionManager: args.productionManager,
-      associateDirector: args.associateDirector,
-      assistantDirectors: args.assistantDirectors,
-      modelCoordinators: args.modelCoordinators,
       costumeStylist: args.costumeStylist,
       makeup: args.makeup,
       hair: args.hair,
@@ -262,8 +237,6 @@ export const create = mutation({
       focusPuller: args.focusPuller,
       editor: args.editor,
       musicDirector: args.musicDirector,
-      di: args.di,
-      cg: args.cg,
       vfx: args.vfx,
       colorist: args.colorist,
       soundFxAndMixing: args.soundFxAndMixing,
@@ -312,18 +285,11 @@ export const update = mutation({
     if (args.thumbnailUrl !== undefined) patch.thumbnailUrl = args.thumbnailUrl
     if (args.client !== undefined) patch.client = args.client
     if (args.productionHouse !== undefined) patch.productionHouse = args.productionHouse
-    if (args.creativeHead !== undefined) patch.creativeHead = args.creativeHead
-    if (args.agencyHead !== undefined) patch.agencyHead = args.agencyHead
-    if (args.servicing !== undefined) patch.servicing = args.servicing
     if (args.executiveProducer !== undefined) patch.executiveProducer = args.executiveProducer
     if (args.associateProducer !== undefined) patch.associateProducer = args.associateProducer
     if (args.productionDesigner !== undefined) patch.productionDesigner = args.productionDesigner
     if (args.lineProducer !== undefined) patch.lineProducer = args.lineProducer
     if (args.juniorProducer !== undefined) patch.juniorProducer = args.juniorProducer
-    if (args.productionManager !== undefined) patch.productionManager = args.productionManager
-    if (args.associateDirector !== undefined) patch.associateDirector = args.associateDirector
-    if (args.assistantDirectors !== undefined) patch.assistantDirectors = args.assistantDirectors
-    if (args.modelCoordinators !== undefined) patch.modelCoordinators = args.modelCoordinators
     if (args.costumeStylist !== undefined) patch.costumeStylist = args.costumeStylist
     if (args.makeup !== undefined) patch.makeup = args.makeup
     if (args.hair !== undefined) patch.hair = args.hair
@@ -333,8 +299,6 @@ export const update = mutation({
     if (args.focusPuller !== undefined) patch.focusPuller = args.focusPuller
     if (args.editor !== undefined) patch.editor = args.editor
     if (args.musicDirector !== undefined) patch.musicDirector = args.musicDirector
-    if (args.di !== undefined) patch.di = args.di
-    if (args.cg !== undefined) patch.cg = args.cg
     if (args.vfx !== undefined) patch.vfx = args.vfx
     if (args.colorist !== undefined) patch.colorist = args.colorist
     if (args.soundFxAndMixing !== undefined) patch.soundFxAndMixing = args.soundFxAndMixing
