@@ -1,6 +1,9 @@
 <template>
   <div class="min-h-screen grid place-items-center">
-    <SignIn forceRedirectUrl="/admin" fallbackRedirectUrl="/admin" />
+    <SignIn
+      force-redirect-url="/admin"
+      fallback-redirect-url="/admin"
+    />
   </div>
 </template>
 

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&display=swap');
 @import "tailwindcss";
 @import "@nuxt/ui";
 
@@ -22,6 +23,7 @@
 
 @theme static {
   --font-sans: 'Public Sans', sans-serif;
+  --font-serif: 'Arvo', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
   --color-green-50: #EFFDF5;
   --color-green-100: #D9FBE8;
@@ -34,4 +36,15 @@
   --color-green-800: #016538;
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
+}
+
+html {
+  background: #f7efe2;
+}
+
+body {
+  background: #f7efe2;
+  color: #2f2118;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }

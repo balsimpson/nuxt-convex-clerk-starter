@@ -1,479 +1,415 @@
 <script setup lang="ts">
 import { api } from '../../../convex/_generated/api'
-import type { Doc } from '../../../convex/_generated/dataModel'
-import { useConvexMutation } from 'convex-vue'
+import type { Id } from '../../../convex/_generated/dataModel'
+import type { TeamCategory, TeamListItem } from '../../../convex/team'
+import { useConvexClient, useConvexMutation } from 'convex-vue'
 
 const props = defineProps<{
-  editItem?: Doc<'teamMembers'> | null
+	editItem?: TeamListItem | null
+	category?: TeamCategory | null
 }>()
 
 const open = defineModel<boolean>('open', {
-  default: false
+	default: false
 })
 
-const form = reactive({
-  name: '',
-  role: '',
-  bio: '',
-  photoUrl: '',
-  email: '',
-  websiteUrl: '',
-  linkedinUrl: '',
-  instagramUrl: '',
-  department: '',
-  active: true,
-  notes: ''
+const categoryItems: TeamCategory[] = ['Board Member', 'Staff', 'Co-ordinator', 'Founder', 'Executive Director']
+const defaultCategory: TeamCategory = 'Board Member'
+
+const convex = useConvexClient()
+
+const form = reactive<{ fullname: string, designation: string, bio: string, category: TeamCategory }>({
+	fullname: '',
+	designation: '',
+	bio: '',
+	category: defaultCategory,
 })
+
+const imageInput = ref<HTMLInputElement | null>(null)
+const selectedImageFile = ref<File | null>(null)
+const selectedImageName = ref('')
+const selectedImagePreview = ref('')
+const currentImageStorageId = ref<Id<'_storage'> | null>(null)
+const currentImageUrl = ref('')
 
 const submitError = ref('')
-
-const photoInput = ref<HTMLInputElement | null>(null)
-const photoFileName = ref('')
-const photoError = ref('')
-
-const { mutate: createTeamMember, isPending: createIsPending, error: createError } = useConvexMutation(api.teamMembers.create)
-const { mutate: updateTeamMember, isPending: updateIsPending, error: updateError } = useConvexMutation(api.teamMembers.update)
+const imageError = ref('')
+const { mutate: createTeamMember, isPending: createIsPending, error: createError } = useConvexMutation(api.team.create)
+const { mutate: updateTeamMember, isPending: updateIsPending, error: updateError } = useConvexMutation(api.team.update)
 
 const isEditMode = computed(() => !!props.editItem)
 const isPending = computed(() => createIsPending.value || updateIsPending.value)
+const previewImageUrl = computed(() => selectedImagePreview.value || currentImageUrl.value)
 
-function trimOptional(value: string) {
-  const trimmed = value.trim()
-  return trimmed || undefined
+function trimValue(value: string) {
+	return value.trim()
 }
 
-function formFromItem(item: Doc<'teamMembers'>) {
-  return {
-    name: item.name,
-    role: item.role,
-    bio: item.bio ?? '',
-    photoUrl: item.photoUrl ?? '',
-    email: item.email ?? '',
-    websiteUrl: item.websiteUrl ?? '',
-    linkedinUrl: item.linkedinUrl ?? '',
-    instagramUrl: item.instagramUrl ?? '',
-    department: item.department ?? '',
-    active: item.active,
-    notes: item.notes ?? ''
-  }
+function formFromItem(item: TeamListItem) {
+	return {
+		fullname: item.fullname,
+		designation: item.designation,
+		bio: item.bio,
+		category: item.category,
+	}
+}
+
+function resetImageState() {
+	selectedImageFile.value = null
+	selectedImageName.value = ''
+	selectedImagePreview.value = ''
+	imageError.value = ''
+	if (imageInput.value) {
+		imageInput.value.value = ''
+	}
 }
 
 function resetForm() {
-  form.name = ''
-  form.role = ''
-  form.bio = ''
-  form.photoUrl = ''
-  form.email = ''
-  form.websiteUrl = ''
-  form.linkedinUrl = ''
-  form.instagramUrl = ''
-  form.department = ''
-  form.active = true
-  form.notes = ''
-  submitError.value = ''
-  photoFileName.value = ''
-  photoError.value = ''
-  if (photoInput.value) {
-    photoInput.value.value = ''
-  }
+	form.fullname = ''
+	form.designation = ''
+	form.bio = ''
+	form.category = props.category ?? defaultCategory
+	currentImageStorageId.value = null
+	currentImageUrl.value = ''
+	resetImageState()
+	submitError.value = ''
 }
 
-function openPhotoPicker() {
-  photoInput.value?.click()
+function openImagePicker() {
+	imageInput.value?.click()
 }
 
-function clearPhoto() {
-  form.photoUrl = ''
-  photoFileName.value = ''
-  photoError.value = ''
-
-  if (photoInput.value) {
-    photoInput.value.value = ''
-  }
+function clearSelectedImage() {
+	resetImageState()
+	selectedImagePreview.value = currentImageUrl.value
 }
 
 async function fileToDataUrl(file: File) {
-  return await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
+	return await new Promise<string>((resolve, reject) => {
+		const reader = new FileReader()
 
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result)
-      } else {
-        reject(new Error('Failed to read image file'))
-      }
-    }
+		reader.onload = () => {
+			if (typeof reader.result === 'string') {
+				resolve(reader.result)
+			} else {
+				reject(new Error('Failed to read image file'))
+			}
+		}
 
-    reader.onerror = () => reject(new Error('Failed to read image file'))
-    reader.readAsDataURL(file)
-  })
+		reader.onerror = () => reject(new Error('Failed to read image file'))
+		reader.readAsDataURL(file)
+	})
 }
 
-async function handlePhotoChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  photoError.value = ''
+async function handleImageChange(event: Event) {
+	const input = event.target as HTMLInputElement
+	const file = input.files?.[0]
+	imageError.value = ''
 
-  if (!file) {
-    return
-  }
+	if (!file) return
 
-  if (!file.type.startsWith('image/')) {
-    photoError.value = 'Please choose an image file'
-    input.value = ''
-    return
-  }
+	if (!file.type.startsWith('image/')) {
+		imageError.value = 'Please choose an image file'
+		input.value = ''
+		return
+	}
 
-  if (file.size > 700 * 1024) {
-    photoError.value = 'Choose an image smaller than 700 KB'
-    input.value = ''
-    return
-  }
+	if (file.size > 2 * 1024 * 1024) {
+		imageError.value = 'Choose an image smaller than 2 MB'
+		input.value = ''
+		return
+	}
 
-  try {
-    form.photoUrl = await fileToDataUrl(file)
-    photoFileName.value = file.name
-  } catch (error) {
-    photoError.value = error instanceof Error ? error.message : 'Failed to read image file'
-  } finally {
-    input.value = ''
-  }
+	try {
+		selectedImageFile.value = file
+		selectedImageName.value = file.name
+		selectedImagePreview.value = await fileToDataUrl(file)
+	} catch (error) {
+		imageError.value = error instanceof Error ? error.message : 'Failed to read image file'
+	} finally {
+		input.value = ''
+	}
+}
+
+async function uploadImageIfNeeded() {
+	if (selectedImageFile.value) {
+		const uploadUrl = await convex.mutation(api.team.generateUploadUrl, {})
+		const response = await fetch(uploadUrl, {
+			method: 'POST',
+			body: selectedImageFile.value,
+		})
+
+		if (!response.ok) {
+			throw new Error('Failed to upload image')
+		}
+
+		const payload = await response.json() as { storageId?: Id<'_storage'> }
+		if (!payload.storageId) {
+			throw new Error('Upload did not return a file id')
+		}
+
+		return payload.storageId
+	}
+
+	if (currentImageStorageId.value) {
+		return currentImageStorageId.value
+	}
+
+	throw new Error('Image is required')
 }
 
 async function submit() {
-  const name = form.name.trim()
-  const role = form.role.trim()
+	const fullname = trimValue(form.fullname)
+	const designation = trimValue(form.designation)
+	const bio = trimValue(form.bio)
+	const category = form.category
 
-  if (!name) throw new Error('Name is required')
-  if (!role) throw new Error('Role is required')
+	if (!fullname) throw new Error('Full name is required')
+	if (!designation) throw new Error('Designation is required')
 
-  if (isEditMode.value && props.editItem) {
-    const payload = {
-      id: props.editItem._id,
-      name,
-      role,
-      active: form.active,
-      ...(trimOptional(form.bio) ? { bio: trimOptional(form.bio) } : {}),
-      ...(trimOptional(form.photoUrl) ? { photoUrl: trimOptional(form.photoUrl) } : {}),
-      ...(trimOptional(form.email) ? { email: trimOptional(form.email) } : {}),
-      ...(trimOptional(form.websiteUrl) ? { websiteUrl: trimOptional(form.websiteUrl) } : {}),
-      ...(trimOptional(form.linkedinUrl) ? { linkedinUrl: trimOptional(form.linkedinUrl) } : {}),
-      ...(trimOptional(form.instagramUrl) ? { instagramUrl: trimOptional(form.instagramUrl) } : {}),
-      ...(trimOptional(form.department) ? { department: trimOptional(form.department) } : {}),
-      ...(trimOptional(form.notes) ? { notes: trimOptional(form.notes) } : {})
-    }
+	const imageStorageId = await uploadImageIfNeeded()
 
-    await updateTeamMember({
-      ...payload
-    })
-  } else {
-    await createTeamMember({
-      name,
-      role,
-      active: form.active,
-      ...(trimOptional(form.bio) ? { bio: trimOptional(form.bio) } : {}),
-      ...(trimOptional(form.photoUrl) ? { photoUrl: trimOptional(form.photoUrl) } : {}),
-      ...(trimOptional(form.email) ? { email: trimOptional(form.email) } : {}),
-      ...(trimOptional(form.websiteUrl) ? { websiteUrl: trimOptional(form.websiteUrl) } : {}),
-      ...(trimOptional(form.linkedinUrl) ? { linkedinUrl: trimOptional(form.linkedinUrl) } : {}),
-      ...(trimOptional(form.instagramUrl) ? { instagramUrl: trimOptional(form.instagramUrl) } : {}),
-      ...(trimOptional(form.department) ? { department: trimOptional(form.department) } : {}),
-      ...(trimOptional(form.notes) ? { notes: trimOptional(form.notes) } : {})
-    })
-  }
+	if (isEditMode.value && props.editItem) {
+		await updateTeamMember({
+			id: props.editItem._id,
+			fullname,
+			designation,
+			bio,
+			imageStorageId,
+			category,
+		})
+	} else {
+		await createTeamMember({
+			fullname,
+			designation,
+			bio,
+			imageStorageId,
+			category,
+		})
+	}
 
-  resetForm()
-  open.value = false
+	resetForm()
+	open.value = false
 }
 
 function saveTeamMember() {
-  submitError.value = ''
+	submitError.value = ''
 
-  submit().catch((error) => {
-    submitError.value = error instanceof Error ? error.message : 'Failed to save team member'
-  })
+	submit().catch((error) => {
+		submitError.value = error instanceof Error ? error.message : 'Failed to save team member'
+	})
 }
 
 function closeModal(close: () => void) {
-  resetForm()
-  close()
+	resetForm()
+	close()
 }
 
-const displayError = computed(() => submitError.value || createError.value?.message || updateError.value?.message || '')
+const displayError = computed(() => submitError.value || imageError.value || createError.value?.message || updateError.value?.message || '')
 
 watch(open, (value) => {
-  if (value && props.editItem) {
-    Object.assign(form, formFromItem(props.editItem))
-    submitError.value = ''
-  } else if (!value) {
-    resetForm()
-  }
+	if (value && props.editItem) {
+		Object.assign(form, formFromItem(props.editItem))
+		currentImageStorageId.value = props.editItem.imageStorageId ?? null
+		currentImageUrl.value = props.editItem.imageUrl
+		resetImageState()
+		selectedImagePreview.value = props.editItem.imageUrl
+		submitError.value = ''
+	} else if (value) {
+		resetForm()
+	} else if (!value) {
+		resetForm()
+	}
 })
 
 watch(() => props.editItem, (item) => {
-  if (open.value && item) {
-    Object.assign(form, formFromItem(item))
-    submitError.value = ''
-  }
+	if (open.value && item) {
+		Object.assign(form, formFromItem(item))
+		currentImageStorageId.value = item.imageStorageId ?? null
+		currentImageUrl.value = item.imageUrl
+		resetImageState()
+		selectedImagePreview.value = item.imageUrl
+		submitError.value = ''
+	}
+})
+
+watch(() => props.category, (category) => {
+	if (open.value && !props.editItem) {
+		form.category = category ?? defaultCategory
+	}
 })
 </script>
 
 <template>
-  <UModal
-    v-model:open="open"
-    :title="isEditMode ? 'Edit team member' : 'Team member'"
-    :ui="{ footer: 'justify-end' }"
-  >
-    <template #body>
-      <div class="space-y-6">
-        <UAlert
-          v-if="displayError"
-          color="error"
-          variant="soft"
-          :title="displayError"
-        />
+	<UModal
+		v-model:open="open"
+		:title="isEditMode ? 'Edit team member' : 'Add team member'"
+		:ui="{ footer: 'justify-end' }"
+	>
+		<template #body>
+			<div class="space-y-6">
+				<UAlert
+					v-if="displayError"
+					color="error"
+					variant="soft"
+					:title="displayError"
+				/>
 
-        <div class="grid gap-4">
-          <div class="rounded-2xl border border-default/60 bg-elevated/20 p-4">
-            <div class="flex items-center gap-3">
-              <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <UIcon
-                  name="i-lucide-users"
-                  class="h-5 w-5"
-                />
-              </div>
+				<div class="grid gap-4">
+					<div class="rounded-2xl border border-default/60 bg-elevated/20 p-4">
+						<div class="flex items-center gap-3">
+							<div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+								<UIcon
+									name="i-lucide-users"
+									class="h-5 w-5"
+								/>
+							</div>
 
-              <div>
-                <p class="text-xs uppercase tracking-[0.24em] text-muted">
-                  Team record
-                </p>
-                <p class="text-sm text-muted">
-                  Capture identity, role, contacts, and publishing state.
-                </p>
-              </div>
-            </div>
-          </div>
+							<div>
+								<p class="text-xs uppercase tracking-[0.24em] text-muted">
+									Team record
+								</p>
+								<p class="text-sm text-muted">
+									Capture the public roster details for the about page.
+								</p>
+							</div>
+						</div>
+					</div>
 
-          <div class="grid gap-4">
-            <UFormField
-              label="Name"
-              required
-              class="w-full"
-            >
-              <UInput
-                v-model="form.name"
-                class="w-full"
-                placeholder="Sreejith K. S"
-              />
-            </UFormField>
+					<div class="grid gap-4">
+						<UFormField
+							label="Full name"
+							required
+							class="w-full"
+						>
+							<UInput
+								v-model="form.fullname"
+								class="w-full"
+								placeholder="Sreejith K. S"
+							/>
+						</UFormField>
 
-            <UFormField
-              label="Role"
-              required
-              class="w-full"
-            >
-              <UInput
-                v-model="form.role"
-                class="w-full"
-                placeholder="Producer, MD"
-              />
-            </UFormField>
+						<UFormField
+							label="Designation"
+							required
+							class="w-full"
+						>
+							<UInput
+								v-model="form.designation"
+								class="w-full"
+								placeholder="Executive Director"
+							/>
+						</UFormField>
 
-            <UFormField
-              label="Department"
-              class="w-full"
-            >
-              <UInput
-                v-model="form.department"
-                class="w-full"
-                placeholder="Production"
-              />
-            </UFormField>
+						<UFormField
+							label="Category"
+							required
+							class="w-full"
+						>
+							<USelect
+								v-model="form.category"
+								class="w-full"
+								:items="categoryItems"
+							/>
+						</UFormField>
 
-            <UFormField
-              label="Biography"
-              class="w-full"
-            >
-              <UTextarea
-                v-model="form.bio"
-                class="w-full"
-                :rows="5"
-                placeholder="A concise bio for the admin list and detail page."
-              />
-            </UFormField>
+						<UFormField
+							label="Biography"
+							class="w-full"
+						>
+							<UTextarea
+								v-model="form.bio"
+								class="w-full"
+								:rows="5"
+								placeholder="A concise bio for the team member."
+							/>
+						</UFormField>
 
-            <UFormField
-              label="Portrait image"
-              class="w-full"
-            >
-              <div class="space-y-3 rounded-2xl border border-default/60 bg-elevated/10 p-4">
-                <div class="flex items-center gap-4">
-                  <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-default/60 bg-elevated/40">
-                    <img
-                      v-if="form.photoUrl"
-                      :src="form.photoUrl"
-                      alt="Selected profile image preview"
-                      class="h-full w-full object-cover object-top"
-                    >
-                    <UIcon
-                      v-else
-                      name="i-lucide-image-plus"
-                      class="h-6 w-6 text-muted"
-                    />
-                  </div>
+						<UFormField
+							label="Image"
+							required
+							class="w-full"
+						>
+							<div class="space-y-3 rounded-2xl border border-default/60 bg-elevated/10 p-4">
+								<div class="flex items-center gap-4">
+									<div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-default/60 bg-elevated/40">
+										<img
+											v-if="previewImageUrl"
+											:src="previewImageUrl"
+											alt="Selected team image preview"
+											class="h-full w-full object-cover object-top"
+										>
+										<UIcon
+											v-else
+											name="i-lucide-image-plus"
+											class="h-6 w-6 text-muted"
+										/>
+									</div>
 
-                  <div class="min-w-0 flex-1 space-y-2">
-                    <p class="text-sm font-medium text-highlighted">
-                      Upload a profile image
-                    </p>
-                    <p class="text-sm leading-6 text-muted">
-                      Choose a JPG, PNG, or WebP file and it will be stored with the team member record.
-                    </p>
+									<div class="min-w-0 flex-1 space-y-2">
+										<p class="text-sm font-medium text-highlighted">
+											Upload a profile image
+										</p>
+										<p class="text-sm leading-6 text-muted">
+											Choose a JPG, PNG, or WebP file.
+										</p>
 
-                    <div class="flex flex-wrap gap-2">
-                      <UButton
-                        color="neutral"
-                        variant="outline"
-                        size="sm"
-                        label="Choose file"
-                        @click="openPhotoPicker"
-                      />
+										<div class="flex flex-wrap gap-2">
+											<UButton
+												color="neutral"
+												variant="outline"
+												size="sm"
+												label="Choose file"
+												@click="openImagePicker"
+											/>
 
-                      <UButton
-                        v-if="form.photoUrl"
-                        color="neutral"
-                        variant="ghost"
-                        size="sm"
-                        label="Clear"
-                        @click="clearPhoto"
-                      />
-                    </div>
+											<UButton
+												v-if="previewImageUrl"
+												color="neutral"
+												variant="ghost"
+												size="sm"
+												label="Clear"
+												@click="clearSelectedImage"
+											/>
+										</div>
 
-                    <UAlert
-                      v-if="photoError"
-                      color="error"
-                      variant="soft"
-                      :title="photoError"
-                    />
+										<p
+											v-if="selectedImageName"
+											class="text-xs text-muted"
+										>
+											Selected: {{ selectedImageName }}
+										</p>
+									</div>
+								</div>
 
-                    <p
-                      v-if="photoFileName"
-                      class="text-xs text-muted"
-                    >
-                      Selected: {{ photoFileName }}
-                    </p>
-                  </div>
-                </div>
+								<input
+									ref="imageInput"
+									type="file"
+									accept="image/*"
+									class="hidden"
+									@change="handleImageChange"
+								>
+							</div>
+						</UFormField>
+					</div>
+				</div>
+			</div>
+		</template>
 
-                <input
-                  ref="photoInput"
-                  type="file"
-                  accept="image/*"
-                  class="hidden"
-                  @change="handlePhotoChange"
-                >
-              </div>
-            </UFormField>
+		<template #footer="{ close }">
+			<UButton
+				color="neutral"
+				variant="outline"
+				label="Close"
+				@click="closeModal(close)"
+			/>
 
-            <div class="grid gap-4 rounded-2xl border border-default/60 p-4">
-              <p class="text-xs uppercase tracking-[0.24em] text-muted">
-                Contact links
-              </p>
-
-              <UFormField
-                label="Email"
-                class="w-full"
-              >
-                <UInput
-                  v-model="form.email"
-                  class="w-full"
-                  type="email"
-                  placeholder="hello@example.com"
-                />
-              </UFormField>
-
-              <UFormField
-                label="Website URL"
-                class="w-full"
-              >
-                <UInput
-                  v-model="form.websiteUrl"
-                  class="w-full"
-                  placeholder="https://..."
-                />
-              </UFormField>
-
-              <UFormField
-                label="LinkedIn URL"
-                class="w-full"
-              >
-                <UInput
-                  v-model="form.linkedinUrl"
-                  class="w-full"
-                  placeholder="https://linkedin.com/..."
-                />
-              </UFormField>
-
-              <UFormField
-                label="Instagram URL"
-                class="w-full"
-              >
-                <UInput
-                  v-model="form.instagramUrl"
-                  class="w-full"
-                  placeholder="https://instagram.com/..."
-                />
-              </UFormField>
-            </div>
-
-            <UFormField
-              label="Notes"
-              class="w-full"
-            >
-              <UTextarea
-                v-model="form.notes"
-                class="w-full"
-                :rows="4"
-                placeholder="Internal notes for the admin record."
-              />
-            </UFormField>
-
-            <UFormField
-              label="Active"
-              class="w-full"
-            >
-              <div class="flex items-center justify-between rounded-2xl border border-default/60 px-4 py-3">
-                <div>
-                  <p class="text-sm font-medium text-highlighted">
-                    Publish on team list
-                  </p>
-                  <p class="text-sm text-muted">
-                    Toggle off to keep this person hidden from public lists.
-                  </p>
-                </div>
-
-                <USwitch v-model="form.active" />
-              </div>
-            </UFormField>
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <template #footer="{ close }">
-      <UButton
-        color="neutral"
-        variant="outline"
-        label="Close"
-        @click="closeModal(close)"
-      />
-
-      <UButton
-        color="primary"
-        :label="isEditMode ? 'Update' : 'Save'"
-        :loading="isPending"
-        @click="saveTeamMember"
-      />
-    </template>
-  </UModal>
+			<UButton
+				color="primary"
+				:label="isEditMode ? 'Update' : 'Save'"
+				:loading="isPending"
+				@click="saveTeamMember"
+			/>
+		</template>
+	</UModal>
 </template>

@@ -1,82 +1,62 @@
 <script setup lang="ts">
 import { api } from '../../../convex/_generated/api'
-import type { Doc } from '../../../convex/_generated/dataModel'
-import { useConvexMutation, useConvexQuery } from 'convex-vue'
-import { useSortableRecords } from '~/composables/useSortableRecords'
-import draggable from 'vuedraggable'
+import type { TeamCategory, TeamListItem } from '../../../convex/team'
+import { useConvexMutation } from 'convex-vue'
 
 definePageMeta({
   layout: 'admin'
 })
 
 const teamOpen = ref(false)
-const editItem = ref<Doc<'teamMembers'> | null>(null)
+const editItem = ref<TeamListItem | null>(null)
+const createCategory = ref<TeamCategory | null>(null)
 const deletingId = ref<string | null>(null)
 
-const overview = [
+const { mutate: removeTeamMember } = useConvexMutation(api.team.remove)
+
+const teamCategorySections = [
   {
-    label: 'Roster focus',
-    value: 'Roles'
+    category: 'Founder',
+    title: 'Founder'
   },
   {
-    label: 'Primary view',
-    value: 'Team list'
+    category: 'Executive Director',
+    title: 'Executive Director'
   },
   {
-    label: 'Best use',
-    value: 'Reorder people'
+    category: 'Board Member',
+    title: 'Board Members',
+    createLabel: 'Add board member'
+  },
+  {
+    category: 'Staff',
+    title: 'Staff',
+    createLabel: 'Add staff'
+  },
+  {
+    category: 'Co-ordinator',
+    title: 'Coordinators',
+    createLabel: 'Add coordinator'
   }
-]
+] satisfies Array<{
+  category: TeamCategory
+  title: string
+  createLabel?: string
+}>
 
-const { data: teamItems, isPending, error } = useConvexQuery(api.teamMembers.list, {
-  limit: 200
-})
-
-const { mutate: reorderTeam } = useConvexMutation(api.teamMembers.reorder)
-const { mutate: removeTeamMember } = useConvexMutation(api.teamMembers.remove)
-
-const {
-  items: teamRecords,
-  isSaving: teamIsSaving,
-  errorMessage: teamSortError,
-  moveUp: moveTeamUp,
-  moveDown: moveTeamDown
-} = useSortableRecords<Doc<'teamMembers'>>(
-  () => teamItems.value ?? [],
-  ids => reorderTeam({ ids })
-)
-
-const localRecords = ref<Doc<'teamMembers'>[]>([])
-watch(
-  teamRecords,
-  (val) => {
-    localRecords.value = [...val]
-  },
-  { immediate: true }
-)
-
-async function onDragEnd() {
-  const ids = localRecords.value.map(item => item._id)
-  const canonicalIds = teamRecords.value.map(item => item._id)
-
-  if (ids.join() !== canonicalIds.join()) {
-    await reorderTeam({ ids })
-  }
-}
-
-const displayError = computed(() => error.value?.message || teamSortError.value || '')
-
-function openEdit(item: Doc<'teamMembers'>) {
+function openEdit(item: TeamListItem) {
   editItem.value = item
+  createCategory.value = null
   teamOpen.value = true
 }
 
-function openCreate() {
+function openCreate(category: TeamCategory = 'Board Member') {
   editItem.value = null
+  createCategory.value = category
   teamOpen.value = true
 }
 
-async function handleDelete(item: Doc<'teamMembers'>) {
+async function handleDelete(item: TeamListItem) {
   if (deletingId.value) return
 
   deletingId.value = item._id
@@ -107,16 +87,16 @@ async function handleDelete(item: Doc<'teamMembers'>) {
 
       <div class="space-y-6 py-8">
         <UCard>
-          <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="space-y-2">
               <p class="text-xs uppercase tracking-[0.28em] text-muted">
                 Team roster
               </p>
               <h2 class="text-2xl font-semibold tracking-[-0.03em] text-highlighted">
-                Team records.
+                Team records
               </h2>
               <p class="max-w-2xl text-sm leading-6 text-muted">
-                Reorder the team list by dragging cards or using the arrow controls.
+                Create, edit, and remove team members in separate category tables, ordered by oldest creation date first.
               </p>
             </div>
 
@@ -124,92 +104,23 @@ async function handleDelete(item: Doc<'teamMembers'>) {
               label="Add team member"
               icon="i-lucide-plus"
               color="primary"
-              @click="openCreate"
+              @click="openCreate()"
             />
-          </div>
-
-          <USeparator class="my-6" />
-
-          <div class="grid gap-3 sm:grid-cols-3">
-            <UCard
-              v-for="item in overview"
-              :key="item.label"
-              variant="subtle"
-            >
-              <p class="text-xs uppercase tracking-[0.24em] text-muted">
-                {{ item.label }}
-              </p>
-              <p class="mt-2 text-sm font-medium text-highlighted">
-                {{ item.value }}
-              </p>
-            </UCard>
           </div>
         </UCard>
 
-        <UAlert
-          v-if="displayError"
-          color="error"
-          variant="soft"
-          :title="displayError"
-        />
-
-        <div
-          v-if="isPending"
-          class="space-y-1.5"
-        >
-          <div
-            v-for="index in 3"
-            :key="index"
-            class="flex animate-pulse items-start gap-3 rounded-lg border border-default/40 px-3 py-2"
-          >
-            <div class="h-12 w-12 rounded-2xl bg-elevated/70" />
-            <div class="min-w-0 flex-1 space-y-2">
-              <div class="h-4 w-24 rounded bg-elevated/70" />
-              <div class="h-5 w-3/4 rounded bg-elevated/70" />
-              <div class="h-4 w-full rounded bg-elevated/70" />
-            </div>
-          </div>
-        </div>
-
-        <AdminEmptyState
-          v-else-if="!teamRecords.length"
-          title="No team members yet"
-          description="Add the first team member, then drag cards to set the roster order."
-          icon="i-lucide-users"
-          action-label="Add team member"
-          @action="openCreate"
-        />
-
-        <div
-          v-else
-          class="space-y-1"
-        >
-          <draggable
-            v-if="localRecords.length"
-            v-model="localRecords"
-            item-key="_id"
-            handle=".drag-handle"
-            ghost-class="drag-ghost-slot"
-            drag-class="drag-floating"
-            animation="200"
-            :disabled="teamIsSaving"
-            tag="div"
-            class="space-y-1"
-            @end="onDragEnd"
-          >
-            <template #item="{ element }">
-              <AdminTeamCard
-                :key="element._id"
-                :item="element"
-                :is-saving="teamIsSaving"
-                :is-deleting="deletingId === element._id"
-                @edit="openEdit(element)"
-                @delete="handleDelete(element)"
-                @move-up="moveTeamUp(element._id)"
-                @move-down="moveTeamDown(element._id)"
-              />
-            </template>
-          </draggable>
+        <div class="space-y-6">
+          <AdminTeamCategoryTable
+            v-for="section in teamCategorySections"
+            :key="section.category"
+            :category="section.category"
+            :title="section.title"
+            :create-label="section.createLabel"
+            :deleting-id="deletingId"
+            @edit="openEdit"
+            @delete="handleDelete"
+            @create="openCreate(section.category)"
+          />
         </div>
       </div>
     </div>
@@ -217,6 +128,7 @@ async function handleDelete(item: Doc<'teamMembers'>) {
     <AdminCreateTeamModal
       v-model:open="teamOpen"
       :edit-item="editItem"
+      :category="createCategory"
     />
   </UPage>
 </template>

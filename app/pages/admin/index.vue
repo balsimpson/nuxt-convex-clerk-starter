@@ -1,298 +1,403 @@
 <script setup lang="ts">
 import { api } from '../../../convex/_generated/api'
-import type { Doc } from '../../../convex/_generated/dataModel'
-import { useConvexMutation, useConvexQuery } from 'convex-vue'
+import type { Id } from '../../../convex/_generated/dataModel'
+import { useConvexClient } from 'convex-vue'
 
 definePageMeta({
   layout: 'admin'
 })
 
-const portfolioOpen = ref(false)
-const awardOpen = ref(false)
-const teamOpen = ref(false)
-const teamEditItem = ref<Doc<'teamMembers'> | null>(null)
-const teamDeletingId = ref<string | null>(null)
-
-type RecentCardItem = {
+type BlogPost = {
+  _id: Id<'posts'>
   title: string
-  subtitle: string
-  createdAt: number
-  href: string
-  thumbnailUrl?: string
-}
-
-type RecentTeamCardItem = Doc<'teamMembers'> & {
-  title: string
-  subtitle: string
-  createdAt: number
-  href: string
-}
-
-const { data: recent, isPending, error } = useConvexQuery(api.admin.recentItems, {
-  limit: 5
-})
-
-const { mutate: removeTeamMember } = useConvexMutation(api.teamMembers.remove)
-
-const sections = computed(() => [
-  {
-    key: 'portfolio',
-    title: 'Portfolio',
-    description: 'Latest portfolio items.',
-    addLabel: 'Add portfolio item',
-    icon: 'i-lucide-briefcase-business',
-    items: recent.value?.portfolio ?? [],
-    emptyTitle: 'No portfolio items yet',
-    emptyDescription: 'Add the first portfolio item to start building the list.'
-  },
-  {
-    key: 'awards',
-    title: 'Awards',
-    description: 'Latest award records.',
-    addLabel: 'Add award',
-    icon: 'i-lucide-trophy',
-    items: recent.value?.awards ?? [],
-    emptyTitle: 'No awards yet',
-    emptyDescription: 'Add the first award record to start the archive.'
-  },
-  {
-    key: 'team',
-    title: 'Team',
-    description: 'Latest team records.',
-    addLabel: 'Add team member',
-    icon: 'i-lucide-users',
-    items: recent.value?.team ?? [],
-    emptyTitle: 'No team members yet',
-    emptyDescription: 'Add the first team member to start the roster.'
+  description: string
+  image: string
+  slug: string
+  status: string
+  tags: string[]
+  published_at: unknown
+  author: {
+    name: string
+    email: string
+    photo: string
+    uid: string
   }
-])
+}
 
-function openAction(action: string) {
-  if (action === 'portfolio') {
-    portfolioOpen.value = true
+const convex = useConvexClient()
+const toast = useToast()
+const posts = ref<BlogPost[]>([])
+const cursor = ref<string | null>(null)
+const isDone = ref(false)
+const isLoadingInitial = ref(true)
+const isLoadingMore = ref(false)
+const errorMessage = ref('')
+const deleteErrorMessage = ref('')
+const deleteModalOpen = ref(false)
+const postPendingDelete = ref<BlogPost | null>(null)
+const deletingId = ref<Id<'posts'> | null>(null)
+const sentinel = ref<HTMLElement | null>(null)
+const sentinelVisible = ref(false)
+
+let observer: IntersectionObserver | null = null
+const batchSize = 8
+
+function formatPublishedAt(value: unknown) {
+  if (!value) return 'Latest post'
+
+  const date = value instanceof Date ? value : new Date(value as string | number)
+
+  if (Number.isNaN(date.getTime())) return 'Latest post'
+
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(date)
+}
+
+function postEditorUrl(id: string) {
+  return `/admin/blog/${id}`
+}
+
+function openDeleteModal(post: BlogPost) {
+  postPendingDelete.value = post
+  deleteErrorMessage.value = ''
+  deleteModalOpen.value = true
+}
+
+function closeDeleteModal() {
+  if (deletingId.value) {
     return
   }
 
-  if (action === 'award' || action === 'awards') {
-    awardOpen.value = true
+  deleteModalOpen.value = false
+  postPendingDelete.value = null
+  deleteErrorMessage.value = ''
+}
+
+async function confirmDeletePost() {
+  const post = postPendingDelete.value
+
+  if (!post || deletingId.value) {
     return
   }
 
-  teamOpen.value = true
-}
-
-function openTeamEdit(item: Doc<'teamMembers'>) {
-  teamEditItem.value = item
-  teamOpen.value = true
-}
-
-async function deleteTeamMember(item: Doc<'teamMembers'>) {
-  if (teamDeletingId.value) return
-
-  teamDeletingId.value = item._id
+  deletingId.value = post._id
+  deleteErrorMessage.value = ''
 
   try {
-    await removeTeamMember({ id: item._id })
+    await convex.mutation(api.posts.remove, { id: post._id })
+    posts.value = posts.value.filter(item => item._id !== post._id)
+    deleteModalOpen.value = false
+    postPendingDelete.value = null
+
+    toast.add({
+      title: 'Blog post deleted',
+      color: 'success'
+    })
+  } catch (error) {
+    deleteErrorMessage.value = error instanceof Error ? error.message : 'Failed to delete blog post.'
   } finally {
-    teamDeletingId.value = null
+    deletingId.value = null
   }
 }
 
-function asTeamMember(item: RecentCardItem | RecentTeamCardItem) {
-  return item as Doc<'teamMembers'>
+async function loadMorePosts() {
+  if (isDone.value || isLoadingMore.value) {
+    return
+  }
+
+  isLoadingMore.value = true
+  errorMessage.value = ''
+  let failed = false
+
+  try {
+    const response = await convex.query(api.posts.listForAdmin, {
+      paginationOpts: {
+        numItems: batchSize,
+        cursor: cursor.value
+      }
+    }) as {
+      page: BlogPost[]
+      isDone: boolean
+      continueCursor: string
+    }
+
+    posts.value.push(...response.page)
+    cursor.value = response.isDone ? null : response.continueCursor
+    isDone.value = response.isDone
+  } catch (error) {
+    failed = true
+    errorMessage.value = error instanceof Error ? error.message : 'Failed to load blog posts.'
+  } finally {
+    isLoadingMore.value = false
+    isLoadingInitial.value = false
+
+    await nextTick()
+
+    if (!failed && sentinelVisible.value && !isDone.value && !isLoadingMore.value) {
+      void loadMorePosts()
+    }
+  }
 }
 
-function getPortfolioThumbnail(item: RecentCardItem | RecentTeamCardItem) {
-  return 'thumbnailUrl' in item ? item.thumbnailUrl : undefined
+function setupObserver() {
+  if (!sentinel.value || typeof IntersectionObserver === 'undefined') {
+    return
+  }
+
+  observer?.disconnect()
+
+  observer = new IntersectionObserver((entries) => {
+    const entry = entries[0]
+
+    if (!entry) {
+      return
+    }
+
+    sentinelVisible.value = entry.isIntersecting
+
+    if (entry.isIntersecting) {
+      void loadMorePosts()
+    }
+  }, {
+    root: null,
+    rootMargin: '800px 0px 800px 0px',
+    threshold: 0
+  })
+
+  observer.observe(sentinel.value)
 }
 
-function formatCreatedAt(timestamp: number) {
-  return new Intl.DateTimeFormat('en', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(timestamp)
-}
+onMounted(async () => {
+  await loadMorePosts()
+  await nextTick()
+  setupObserver()
+})
+
+onBeforeUnmount(() => {
+  observer?.disconnect()
+})
+
+watch(deleteModalOpen, (isOpen) => {
+  if (!isOpen && !deletingId.value) {
+    postPendingDelete.value = null
+    deleteErrorMessage.value = ''
+  }
+})
 </script>
 
 <template>
   <UPage>
     <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div class="space-y-2">
-          <p class="text-xs uppercase tracking-[0.28em] text-muted">
-            Admin
-          </p>
-          <h1 class="text-3xl font-semibold tracking-[-0.04em] text-highlighted sm:text-4xl">
-            Latest content
-          </h1>
-          <p class="max-w-2xl text-sm leading-6 text-muted">
-            Keep portfolio, awards, and team entries separate, with the latest five in each section.
-          </p>
-        </div>
-      </div>
+      <UPageHeader
+        headline="Admin"
+        title="Overview"
+        :links="[
+          {
+            label: 'Add blog post',
+            to: '/admin/blog/new',
+            color: 'primary',
+            icon: 'i-lucide-plus'
+          }
+        ]"
+      />
 
       <div class="py-8">
-        <UAlert
-          v-if="error"
-          color="error"
-          variant="soft"
-          :title="error.message"
-        />
+        <UCard>
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="space-y-2">
+              <p class="text-xs uppercase tracking-[0.28em] text-muted">
+                Blog posts
+              </p>
+              <h2 class="text-2xl font-semibold tracking-[-0.03em] text-highlighted">
+                Published posts
+              </h2>
+              <p class="max-w-2xl text-sm leading-6 text-muted">
+                Posts are loaded from the Convex posts table, including drafts.
+              </p>
+            </div>
 
-        <div class="grid gap-4 lg:grid-cols-3">
-          <UCard
-            v-for="section in sections"
-            :key="section.key"
-            class="h-full"
-          >
-            <div class="flex h-full flex-col">
-              <div class="flex items-start justify-between gap-4">
-                <div class="space-y-2">
-                  <p class="text-xs uppercase tracking-[0.24em] text-muted">
-                    Latest 5
-                  </p>
-                  <h2 class="text-lg font-semibold text-highlighted">
-                    {{ section.title }}
-                  </h2>
-                  <p class="text-sm leading-6 text-muted">
-                    {{ section.description }}
-                  </p>
-                </div>
+            <UButton
+              to="/blog"
+              label="Open blog"
+              icon="i-lucide-arrow-up-right"
+              color="neutral"
+              variant="outline"
+              class="shrink-0"
+            />
+          </div>
 
-                <UButton
-                  :label="section.addLabel"
-                  icon="i-lucide-plus"
-                  color="primary"
-                  size="sm"
-                  @click="openAction(section.key)"
-                />
-              </div>
+          <UAlert
+            v-if="errorMessage"
+            color="error"
+            variant="soft"
+            :title="errorMessage"
+            class="mt-6"
+          />
 
-              <USeparator class="my-6" />
-
-              <div
-                v-if="isPending"
-                class="space-y-4"
+          <div class="mt-6 divide-y divide-default border-y border-default">
+            <div
+              v-for="post in posts"
+              :key="post._id"
+              class="group flex items-start gap-3 py-4 transition-colors hover:bg-elevated/45 sm:gap-5"
+            >
+              <NuxtLink
+                :to="postEditorUrl(post._id)"
+                class="flex min-w-0 flex-1 gap-4 sm:gap-5"
               >
-                <div
-                  v-for="index in 5"
-                  :key="index"
-                  class="flex items-start gap-4 rounded-2xl border border-default/60 p-4"
+                <img
+                  :src="post.image"
+                  :alt="post.title"
+                  class="h-20 w-24 shrink-0 object-cover sm:h-24 sm:w-36"
                 >
-                  <div class="h-10 w-10 rounded-2xl bg-elevated/70 animate-pulse" />
-                  <div class="min-w-0 flex-1 space-y-2">
-                    <div class="h-4 w-24 rounded bg-elevated/70 animate-pulse" />
-                    <div class="h-5 w-2/3 rounded bg-elevated/70 animate-pulse" />
-                    <div class="h-4 w-1/2 rounded bg-elevated/70 animate-pulse" />
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-muted">
+                    <span>{{ formatPublishedAt(post.published_at) }}</span>
+                    <span v-if="post.author.name">{{ post.author.name }}</span>
+                    <UBadge
+                      color="neutral"
+                      variant="soft"
+                      size="sm"
+                    >
+                      {{ post.status }}
+                    </UBadge>
+                  </div>
+
+                  <h3 class="mt-1 line-clamp-2 text-base font-semibold tracking-[-0.01em] text-highlighted group-hover:text-primary sm:text-lg">
+                    {{ post.title }}
+                  </h3>
+
+                  <p class="mt-1 line-clamp-2 text-sm leading-6 text-muted">
+                    {{ post.description }}
+                  </p>
+
+                  <div
+                    v-if="post.tags.length"
+                    class="mt-3 flex flex-wrap gap-2"
+                  >
+                    <UBadge
+                      v-for="tag in post.tags.slice(0, 3)"
+                      :key="tag"
+                      color="neutral"
+                      variant="soft"
+                      size="sm"
+                    >
+                      {{ tag }}
+                    </UBadge>
                   </div>
                 </div>
-              </div>
 
-              <div
-                v-else-if="!section.items.length"
-                class="flex min-h-56 flex-1 flex-col items-start gap-4 rounded-2xl border border-dashed border-default/70 bg-elevated/30 p-6"
-              >
-                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <UIcon
-                    :name="section.icon"
-                    class="h-6 w-6"
-                  />
-                </div>
-                <div class="space-y-1">
-                  <h3 class="text-base font-semibold text-highlighted">
-                    {{ section.emptyTitle }}
-                  </h3>
-                  <p class="text-sm leading-6 text-muted">
-                    {{ section.emptyDescription }}
-                  </p>
-                </div>
-                <UButton
-                  :label="section.addLabel"
-                  icon="i-lucide-plus"
-                  color="primary"
-                  @click="openAction(section.key)"
+                <UIcon
+                  name="i-lucide-pencil"
+                  class="mt-1 hidden h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-primary sm:block"
                 />
-              </div>
+              </NuxtLink>
 
-              <div
-                v-else
-                class="space-y-3"
-              >
-                <template v-if="section.key === 'team'">
-                  <AdminTeamCard
-                    v-for="item in section.items"
-                    :key="`${section.key}-${asTeamMember(item)._id}`"
-                    :item="asTeamMember(item)"
-                    :show-reorder-controls="false"
-                    :is-deleting="teamDeletingId === asTeamMember(item)._id"
-                    @edit="openTeamEdit(asTeamMember(item))"
-                    @delete="deleteTeamMember(asTeamMember(item))"
-                  />
-                </template>
-
-                <template v-else>
-                  <NuxtLink
-                    v-for="item in section.items"
-                    :key="`${section.key}-${item.createdAt}-${item.title}`"
-                    :to="item.href"
-                    class="flex items-start gap-4 rounded-2xl border border-default/60 p-4 transition-colors hover:bg-elevated/40"
-                  >
-                    <div
-                      v-if="section.key === 'portfolio'"
-                      class="h-16 w-24 shrink-0 overflow-hidden rounded-2xl bg-elevated/40"
-                    >
-                      <img
-                        v-if="getPortfolioThumbnail(item)"
-                        :src="getPortfolioThumbnail(item) ?? ''"
-                        :alt="item.title"
-                        class="h-full w-full object-cover"
-                      >
-
-                      <div
-                        v-else
-                        class="flex h-full w-full items-center justify-center text-xs font-semibold uppercase tracking-[0.18em] text-muted"
-                      >
-                        Portfolio
-                      </div>
-                    </div>
-
-                    <div
-                      v-else
-                      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
-                    >
-                      {{ section.title.slice(0, 1) }}
-                    </div>
-
-                    <div class="min-w-0 flex-1 space-y-1">
-                      <h3 class="truncate text-base font-semibold text-highlighted">
-                        {{ item.title }}
-                      </h3>
-                      <p class="text-sm leading-6 text-muted">
-                        {{ item.subtitle }}
-                      </p>
-                      <p class="text-xs text-muted">
-                        Added {{ formatCreatedAt(item.createdAt) }}
-                      </p>
-                    </div>
-
-                    <UIcon
-                      name="i-lucide-arrow-up-right"
-                      class="mt-1 h-5 w-5 text-muted"
-                    />
-                  </NuxtLink>
-                </template>
-              </div>
+              <UButton
+                :aria-label="`Delete ${post.title}`"
+                icon="i-lucide-trash-2"
+                color="error"
+                variant="ghost"
+                size="sm"
+                :loading="deletingId === post._id"
+                class="shrink-0"
+                @click="openDeleteModal(post)"
+              />
             </div>
-          </UCard>
-        </div>
+          </div>
+
+          <div class="flex min-h-20 items-center justify-center px-4 text-sm text-muted">
+            <span v-if="isLoadingInitial">
+              Loading posts...
+            </span>
+            <span v-else-if="isLoadingMore">
+              Loading more posts...
+            </span>
+            <span v-else-if="isDone && posts.length">
+              You have reached the end of the archive.
+            </span>
+            <span v-else-if="posts.length">
+              Scroll down to load more.
+            </span>
+            <span v-else>
+              No posts found.
+            </span>
+          </div>
+
+          <div
+            ref="sentinel"
+            class="h-1 w-full"
+          />
+        </UCard>
       </div>
     </div>
 
-    <AdminCreatePortfolioModal v-model:open="portfolioOpen" />
-    <AdminCreateAwardModal v-model:open="awardOpen" />
-    <AdminCreateTeamModal
-      v-model:open="teamOpen"
-      :edit-item="teamEditItem"
-    />
+    <UModal
+      v-model:open="deleteModalOpen"
+      :dismissible="!deletingId"
+    >
+      <template #header>
+        <div class="flex items-start gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-error/10 text-error">
+            <UIcon
+              name="i-lucide-trash-2"
+              class="h-5 w-5"
+            />
+          </div>
+
+          <div class="min-w-0">
+            <h2 class="text-base font-semibold text-highlighted">
+              Delete blog post?
+            </h2>
+            <p class="mt-1 text-sm leading-6 text-muted">
+              This will permanently delete "{{ postPendingDelete?.title }}".
+            </p>
+          </div>
+        </div>
+      </template>
+
+      <template #body>
+        <UAlert
+          v-if="deleteErrorMessage"
+          color="error"
+          variant="soft"
+          :title="deleteErrorMessage"
+        />
+
+        <p
+          v-else
+          class="text-sm leading-6 text-muted"
+        >
+          Deleted posts are removed from the public blog and cannot be restored from this admin page.
+        </p>
+      </template>
+
+      <template #footer>
+        <div class="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <UButton
+            type="button"
+            color="neutral"
+            variant="outline"
+            :disabled="!!deletingId"
+            @click="closeDeleteModal"
+          >
+            Cancel
+          </UButton>
+
+          <UButton
+            type="button"
+            color="error"
+            icon="i-lucide-trash-2"
+            :loading="!!deletingId"
+            @click="confirmDeletePost"
+          >
+            Delete post
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </UPage>
 </template>
