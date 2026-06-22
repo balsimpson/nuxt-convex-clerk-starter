@@ -114,19 +114,9 @@ watch(contactSettings, (settings) => {
       />
 
       <div class="py-8">
-        <section class="border-y border-default py-6">
+        <section class="">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div class="space-y-2">
-              <p class="text-xs uppercase tracking-[0.28em] text-muted">
-                Public contact page
-              </p>
-              <h2 class="text-2xl font-semibold tracking-[-0.03em] text-highlighted">
-                Editable information
-              </h2>
-              <p class="max-w-2xl text-sm leading-6 text-muted">
-                Enter one address line, phone number, email address, or office-hours note per line.
-              </p>
-            </div>
+
 
             <UBadge
               color="primary"
