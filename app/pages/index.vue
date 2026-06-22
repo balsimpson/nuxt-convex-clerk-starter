@@ -4,8 +4,8 @@
       <AppHero @open-volunteer-modal="volunteerOpen = true" />
       <AppMission />
       <AppImpact />
-      <AppGetInvolved @open-volunteer-modal="volunteerOpen = true" />
       <AppBlog />
+      <AppGetInvolved @open-volunteer-modal="volunteerOpen = true" />
     </main>
 
     <UModal
@@ -31,7 +31,7 @@
               Volunteer interest
             </p>
             <h2 class="mt-1 font-serif text-2xl leading-tight text-[#2f2118] sm:text-3xl">
-              Join the work in a way that fits you.
+              Get involved in the work
             </h2>
             <p class="mt-2 max-w-xl text-sm leading-6 text-[#4f4134]">
               Share a few details and we'll follow up about volunteering, partnerships, or internships.

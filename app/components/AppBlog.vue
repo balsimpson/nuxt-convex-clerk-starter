@@ -15,8 +15,8 @@
         Blog
       </Motion>
 
-      <div class="grid gap-8 border-b border-[#d9c9b7] pb-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:gap-16 lg:pb-12">
-        <div class="max-w-2xl">
+      <div class="flex flex-col justify-between md:flex-row md:items-end gap-8 border-b border-[#d9c9b7] pb-10">
+        <div class="">
           <Motion
             as="h2"
             class="font-serif text-4xl font-normal leading-[1.02] text-[#2f2118] text-balance sm:text-5xl lg:text-6xl"
@@ -36,38 +36,27 @@
             :in-view-options="viewOnce"
             :transition="revealTransition(0.16)"
           >
-            Community notes, program updates, and practical learning captured in short, direct writing.
+            Community notes and program updates.
           </Motion>
 
-          <Motion
-            as="div"
-            class="mt-6"
-            :initial="{ opacity: 0, y: 18 }"
-            :while-in-view="{ opacity: 1, y: 0 }"
-            :in-view-options="viewOnce"
-            :transition="revealTransition(0.24)"
-          >
-            <UButton
-              to="/blog"
-              color="neutral"
-              variant="outline"
-              trailing-icon="i-lucide-arrow-up-right"
-              class="rounded-none border-[#8a6a52] px-5 py-3 text-sm font-medium text-[#3a2718] hover:bg-[#efe2d0]"
-            >
-              Browse all posts
-            </UButton>
-          </Motion>
         </div>
-
         <Motion
           as="div"
-          class="hidden text-sm leading-7 text-[#4f4134] sm:text-base lg:block lg:max-w-xl"
-          :initial="{ opacity: 0, y: 20 }"
+          class="shrink-0"
+          :initial="{ opacity: 0, y: 18 }"
           :while-in-view="{ opacity: 1, y: 0 }"
           :in-view-options="viewOnce"
-          :transition="revealTransition(0.16)"
+          :transition="revealTransition(0.24)"
         >
-          The archive keeps the field work visible: what changed, what was learned, and where Manasa is focusing next.
+          <UButton
+            to="/blog"
+            color="neutral"
+            variant="outline"
+            trailing-icon="i-lucide-arrow-up-right"
+            class="rounded-none border-[#8a6a52] px-5 py-3 text-sm font-medium text-[#3a2718] hover:bg-[#efe2d0]"
+          >
+            Browse all posts
+          </UButton>
         </Motion>
       </div>
 

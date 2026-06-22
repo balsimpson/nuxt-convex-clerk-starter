@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-[#fbf7ef] text-[#2f2118]">
     <main class="relative overflow-hidden px-4 pb-[4.5rem] pt-10 sm:px-6 lg:px-8 lg:pb-24 lg:pt-14">
       <div class="mx-auto max-w-7xl">
-        <section class="grid gap-8 border-b border-[#d9c9b7] pb-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:gap-16 lg:pb-12">
+        <section class="grid gap-8 border-b border-[#d9c9b7] pb-10 lg:grid-cols-[1.9fr_1.1fr] lg:items-end lg:gap-16 lg:pb-12">
           <div class="max-w-3xl">
             <Motion
               as="p"

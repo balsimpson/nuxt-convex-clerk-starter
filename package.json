@@ -22,15 +22,19 @@
     "@tiptap/vue-3": "^3.26.1",
     "convex": "^1.31.7",
     "convex-nuxt": "^0.1.5",
+    "convex-vue": "^0.1.5",
     "motion-v": "^2.3.0",
+    "nodemailer": "^9.0.1",
     "nuxt": "^4.4.5",
     "tailwindcss": "^4.2.4",
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",
+    "@types/nodemailer": "^8.0.1",
     "eslint": "^10.2.1",
     "typescript": "^6.0.3",
+    "vite": "^7.3.5",
     "vue-tsc": "^3.2.7"
   }
 }

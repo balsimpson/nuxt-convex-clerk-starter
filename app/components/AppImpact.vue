@@ -22,7 +22,7 @@
             :in-view-options="viewOnce"
             :transition="revealTransition(0.08)"
           >
-            Numbers shaped by access, learning, and collective action.
+            Numbers shaped by access, learning, and <span class="font-bold">collective action</span>.
           </Motion>
 
           <Motion

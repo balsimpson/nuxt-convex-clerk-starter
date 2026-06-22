@@ -21,6 +21,39 @@ const postInputValidator = {
   author: authorValidator
 }
 
+function extractFirstMarkdownImage(content: unknown) {
+  if (typeof content !== 'string') return ''
+
+  const match = content.match(/!\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\s*\)/i)
+
+  return (match?.[1] ?? match?.[2] ?? '').trim()
+}
+
+function markdownToPlainText(value: unknown) {
+  if (typeof value !== 'string') return ''
+
+  return value
+    .replace(/!\[[^\]]*\]\(\s*(?:<[^>]+>|[^\s)]+)(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\s*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\(\s*(?:<[^>]+>|[^\s)]+)(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\s*\)/g, '$1')
+    .replace(/^```[^\n]*|```$/gm, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s{0,3}(?:#{1,6}\s+|>\s?|[-*+]\s+|\d+\.\s+)/gm, '')
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/([*_~])([^\n]+?)\1/g, '$2')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function displayFields(post: { title: string, description: string, image: string, content: unknown }) {
+  const contentDescription = markdownToPlainText(post.content)
+
+  return {
+    description: markdownToPlainText(post.description) || contentDescription.slice(0, 180).trim() || post.title.trim(),
+    image: extractFirstMarkdownImage(post.content) || post.image.trim()
+  }
+}
+
 export const latest = query({
   args: {
     limit: v.optional(v.number())
@@ -33,16 +66,20 @@ export const latest = query({
       .order('desc')
       .take(limit)
 
-    return posts.map(post => ({
-      _id: post._id,
-      title: post.title,
-      description: post.description,
-      image: post.image,
-      slug: post.slug,
-      tags: post.tags,
-      published_at: post.published_at,
-      author: post.author
-    }))
+    return posts.map((post) => {
+      const fields = displayFields(post)
+
+      return {
+        _id: post._id,
+        title: post.title,
+        description: fields.description,
+        image: fields.image,
+        slug: post.slug,
+        tags: post.tags,
+        published_at: post.published_at,
+        author: post.author
+      }
+    })
   }
 })
 
@@ -62,12 +99,13 @@ export const getBySlug = query({
     }
 
     const entry = post[0]!
+    const fields = displayFields(entry)
 
     return {
       _id: entry._id,
       title: entry.title,
-      description: entry.description,
-      image: entry.image,
+      description: fields.description,
+      image: fields.image,
       slug: entry.slug,
       tags: entry.tags,
       published_at: entry.published_at,
@@ -88,11 +126,13 @@ export const getForAdmin = query({
       return null
     }
 
+    const fields = displayFields(post)
+
     return {
       _id: post._id,
       title: post.title,
-      description: post.description,
-      image: post.image,
+      description: fields.description,
+      image: fields.image,
       slug: post.slug,
       status: post.status,
       tags: post.tags,
@@ -114,13 +154,15 @@ export const getById = query({
       return null
     }
 
+    const fields = displayFields(post)
+
     return {
       _id: post._id,
       title: post.title,
-      description: post.description,
-      excerpt: post.description,
+      description: fields.description,
+      excerpt: fields.description,
       category: '',
-      image: post.image,
+      image: fields.image,
       slug: post.slug,
       status: post.status,
       publishStatus: post.status,
@@ -149,44 +191,59 @@ export const list = query({
 
     return {
       ...results,
-      page: results.page.map(post => ({
-        _id: post._id,
-        title: post.title,
-        description: post.description,
-        image: post.image,
-        slug: post.slug,
-        tags: post.tags,
-        published_at: post.published_at,
-        author: post.author
-      }))
+      page: results.page.map((post) => {
+        const fields = displayFields(post)
+
+        return {
+          _id: post._id,
+          title: post.title,
+          description: fields.description,
+          image: fields.image,
+          slug: post.slug,
+          tags: post.tags,
+          published_at: post.published_at,
+          author: post.author
+        }
+      })
     }
   }
 })
 
 export const listForAdmin = query({
   args: {
-    paginationOpts: paginationOptsValidator
+    paginationOpts: paginationOptsValidator,
+    searchQuery: v.optional(v.string())
   },
   handler: async (ctx, args) => {
-    const results = await ctx.db
-      .query('posts')
-      .withIndex('by_published_at')
-      .order('desc')
-      .paginate(args.paginationOpts)
+    const searchQuery = args.searchQuery?.trim()
+    const results = searchQuery
+      ? await ctx.db
+          .query('posts')
+          .withSearchIndex('search_title', q => q.search('title', searchQuery))
+          .paginate(args.paginationOpts)
+      : await ctx.db
+          .query('posts')
+          .withIndex('by_published_at')
+          .order('desc')
+          .paginate(args.paginationOpts)
 
     return {
       ...results,
-      page: results.page.map(post => ({
-        _id: post._id,
-        title: post.title,
-        description: post.description,
-        image: post.image,
-        slug: post.slug,
-        status: post.status,
-        tags: post.tags,
-        published_at: post.published_at,
-        author: post.author
-      }))
+      page: results.page.map((post) => {
+        const fields = displayFields(post)
+
+        return {
+          _id: post._id,
+          title: post.title,
+          description: fields.description,
+          image: fields.image,
+          slug: post.slug,
+          status: post.status,
+          tags: post.tags,
+          published_at: post.published_at,
+          author: post.author
+        }
+      })
     }
   }
 })
@@ -204,9 +261,12 @@ export const create = mutation({
     }
 
     const now = Date.now()
+    const fields = displayFields(args)
 
     return await ctx.db.insert('posts', {
       ...args,
+      description: fields.description,
+      image: fields.image,
       updated_at: now,
       last_updated: now
     })
@@ -236,9 +296,12 @@ export const update = mutation({
 
     const { id, ...updates } = args
     const now = Date.now()
+    const fields = displayFields(updates)
 
     await ctx.db.patch(id, {
       ...updates,
+      description: fields.description,
+      image: fields.image,
       updated_at: now,
       last_updated: now
     })
@@ -265,7 +328,8 @@ export const upsert = mutation({
     const status = args.publishStatus ?? args.contentType ?? 'draft'
     const title = args.title?.trim() || 'Untitled'
     const slug = args.slug.trim() || 'untitled'
-    const description = args.excerpt?.trim() || title
+    const description = markdownToPlainText(args.excerpt) || markdownToPlainText(args.content).slice(0, 180).trim() || title
+    const image = extractFirstMarkdownImage(args.content) || args.image?.trim() || ''
     const now = Date.now()
     const publishedAt = args.originalPublishedAt ? new Date(args.originalPublishedAt).toISOString() : new Date(now).toISOString()
 
@@ -281,7 +345,7 @@ export const upsert = mutation({
     const post = {
       title,
       description,
-      image: args.image ?? '',
+      image,
       slug,
       status,
       content: args.content ?? '',

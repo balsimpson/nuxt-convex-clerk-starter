@@ -1,5 +1,6 @@
 import { v } from 'convex/values'
-import { mutation } from './_generated/server'
+import { internal } from './_generated/api'
+import { internalQuery, mutation } from './_generated/server'
 
 export const submit = mutation({
   args: {
@@ -10,7 +11,7 @@ export const submit = mutation({
     message: v.string()
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert('contactSubmissions', {
+    const submissionId = await ctx.db.insert('contactSubmissions', {
       name: args.name.trim(),
       email: args.email.trim(),
       phone: args.phone.trim(),
@@ -19,6 +20,19 @@ export const submit = mutation({
       createdAt: Date.now()
     })
 
+    await ctx.scheduler.runAfter(0, internal.contactEmail.sendSubmissionAlert, {
+      submissionId
+    })
+
     return null
+  }
+})
+
+export const getSubmissionForAlert = internalQuery({
+  args: {
+    submissionId: v.id('contactSubmissions')
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get('contactSubmissions', args.submissionId)
   }
 })

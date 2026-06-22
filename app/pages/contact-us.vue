@@ -11,28 +11,16 @@
         <section class="border-b border-[#d9c9b7] pb-12 lg:pb-16">
           <div class="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end lg:gap-16">
             <div class="max-w-2xl">
-              <p class="text-xs font-semibold uppercase text-[#5f3724]">
+              <!-- <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 Contact Us
-              </p>
+              </p> -->
 
               <h1 class="mt-4 font-serif text-5xl font-normal leading-[1.02] text-[#2f2118] text-balance sm:text-6xl lg:text-7xl xl:text-8xl">
-                Reach
-                <span class="inline-block rounded-[8px] bg-[#dcc0a3] px-3 pb-1 text-[#2f2118] underline decoration-[#8f6240] decoration-2 underline-offset-8">
-                  Manasa
-                </span>
+                Reach <span class="font-bold">Manasa</span>
               </h1>
 
               <p class="mt-7 max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg">
                 Use the details below to reach our office, or send a message through the form and we will get back to you.
-              </p>
-            </div>
-
-            <div class="border-t border-[#d9c9b7] pt-6 text-sm leading-7 text-[#4f4134] lg:border-t-0 lg:pt-0 lg:pl-8">
-              <p class="text-xs font-semibold uppercase text-[#5f3724]">
-                Quick Contact
-              </p>
-              <p class="mt-3 max-w-xl">
-                Bangalore office details, phone numbers, and email addresses are listed below for direct contact.
               </p>
             </div>
           </div>
@@ -40,7 +28,7 @@
 
         <section class="py-12 lg:py-16">
           <div class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
-            <div class="border-t border-[#d9c9b7] pt-8 lg:border-t-0">
+            <div class="pt-8 lg:border-t-0">
               <UAlert
                 v-if="submitSuccess"
                 color="success"
@@ -93,18 +81,6 @@
                   <UInput
                     v-model="contactForm.phone"
                     type="tel"
-                    class="w-full"
-                  />
-                </UFormField>
-
-                <UFormField
-                  label="Subject"
-                  required
-                  class="w-full sm:col-span-1"
-                >
-                  <UInput
-                    v-model="contactForm.subject"
-                    required
                     class="w-full"
                   />
                 </UFormField>

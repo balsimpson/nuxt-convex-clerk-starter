@@ -12,7 +12,7 @@
         Get Involved
       </Motion>
 
-      <div class="grid gap-10 border-b border-[#d9c9b7] pb-12 lg:grid-cols-[0.92fr_1.08fr] lg:items-start lg:gap-16 lg:pb-16">
+      <div class="grid gap-10 pb-12 lg:grid-cols-[0.92fr_1.08fr] lg:items-start lg:gap-16 lg:pb-16">
         <Motion
           as="figure"
           class="relative border border-[#d0bda8] bg-[#efe2d0] p-2"
@@ -23,7 +23,7 @@
         >
           <img
             class="h-full min-h-[24rem] w-full object-cover object-center"
-            src="/hero.jpeg"
+            src="/img2.webp"
             alt="Volunteers and community members working together"
           >
 
@@ -46,7 +46,7 @@
             :in-view-options="viewOnce"
             :transition="revealTransition(0.16)"
           >
-            Join the work in a way that fits your skills.
+            Get Involved
           </Motion>
 
           <Motion
@@ -80,7 +80,7 @@
             </Motion>
           </div>
 
-          <div class="mt-8 flex flex-wrap items-center gap-4">
+          <div class="mt-8 flex flex-col items-start gap-4">
             <Motion
               as="div"
               class="min-w-0 flex-1"
@@ -97,7 +97,8 @@
               </p>
             </Motion>
 
-            <Motion
+<div class="flex gap-4">
+              <Motion
               as="div"
               :initial="{ opacity: 0, y: 14 }"
               :while-in-view="{ opacity: 1, y: 0 }"
@@ -133,6 +134,7 @@
                 Get Involved
               </UButton>
             </Motion>
+</div>
           </div>
         </div>
       </div>

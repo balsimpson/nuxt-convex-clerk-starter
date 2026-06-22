@@ -1,7 +1,7 @@
 <template>
   <footer class="border-t border-[#d9c9b7] bg-[#f7efe2] text-[#2f2118]">
     <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-      <div class="grid gap-10 lg:grid-cols-[1.1fr_0.7fr_1fr] lg:gap-14">
+      <div class="grid gap-10 md:grid-cols-[1.1fr_0.7fr_1fr] md:gap-14">
         <div class="max-w-xl">
           <NuxtLink
             to="/"

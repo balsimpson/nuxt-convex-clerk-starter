@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch, markRaw } from 'vue'
+import { computed, ref, watch, markRaw, shallowRef } from 'vue'
 import { watchDebounced } from '@vueuse/core'
 import { api } from '~~/convex/_generated/api'
 import type { EditorCustomHandlers, EditorToolbarItem } from '@nuxt/ui'
 import type { Editor } from '@tiptap/vue-3'
-import { ImageUpload } from '~/utils/EditorImageUploadExtension'
 import { Youtube } from '@tiptap/extension-youtube'
 import Placeholder from '@tiptap/extension-placeholder'
 import type { PropType } from 'vue'
@@ -33,6 +32,11 @@ const saveError = ref<string | null>(null)
 const lastSavedAt = ref<number | null>(null)
 const hydratedId = ref<string | null>(null)
 const isSettingsOpen = ref(false)
+const imageInput = ref<HTMLInputElement | null>(null)
+const pendingImageEditor = shallowRef<Editor | null>(null)
+const pendingImageSelection = ref<{ from: number, to: number } | null>(null)
+const isImageUploading = ref(false)
+const { insertEditorImage } = useEditorImageUpload()
 
 const excerpt = ref('')
 const category = ref('')
@@ -60,19 +64,60 @@ const postId = computed(() => hydratedId.value)
 const normalizedSlug = computed(() => slug.value.trim())
 
 const extensions = [
-  markRaw(ImageUpload),
   markRaw(Youtube.configure({ inline: false, controls: true })),
   Placeholder.configure({
     placeholder: 'Start writing your next post...',
   }),
 ]
 
+function openImagePicker(editor: Editor) {
+  if (isImageUploading.value || !imageInput.value) return
+
+  pendingImageEditor.value = editor
+  pendingImageSelection.value = {
+    from: editor.state.selection.from,
+    to: editor.state.selection.to
+  }
+  imageInput.value.value = ''
+  imageInput.value.click()
+}
+
+async function handleImageFileChange(event: Event) {
+  const input = event.currentTarget as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+
+  if (!file) return
+
+  const editor = pendingImageEditor.value
+  const selection = pendingImageSelection.value
+  isImageUploading.value = true
+
+  try {
+    if (!editor || !selection || editor.isDestroyed) {
+      throw new Error('The image insertion point is no longer available.')
+    }
+
+    await insertEditorImage(editor, selection, file)
+  } catch (error) {
+    saveError.value = error instanceof Error ? error.message : 'The image could not be uploaded.'
+    saveState.value = 'error'
+  } finally {
+    isImageUploading.value = false
+    pendingImageEditor.value = null
+    pendingImageSelection.value = null
+  }
+}
+
 const customHandlers = {
   imageUpload: {
-    canExecute: (editor: Editor) => editor.can().insertContent({ type: 'imageUpload' }),
-    execute: (editor: Editor) => editor.chain().focus().insertContent({ type: 'imageUpload' }),
-    isActive: (editor: Editor) => editor.isActive('imageUpload'),
-    isDisabled: undefined
+    canExecute: () => !isImageUploading.value,
+    execute: (editor: Editor) => {
+      openImagePicker(editor)
+      return editor.chain()
+    },
+    isActive: () => false,
+    isDisabled: () => isImageUploading.value
   },
   youtubeEmbed: {
     canExecute: () => true,
@@ -85,7 +130,7 @@ const customHandlers = {
   }
 } satisfies EditorCustomHandlers
 
-const toolbarItems: EditorToolbarItem[] = [
+const toolbarItems = computed<EditorToolbarItem[]>(() => [
   { kind: 'mark', mark: 'bold', icon: 'i-lucide-bold' },
   { kind: 'mark', mark: 'italic', icon: 'i-lucide-italic' },
   { kind: 'heading', level: 1, icon: 'i-lucide-heading-1' },
@@ -97,9 +142,15 @@ const toolbarItems: EditorToolbarItem[] = [
   { kind: 'blockquote', icon: 'i-lucide-quote' },
   { kind: 'link', icon: 'i-lucide-link' },
   { kind: 'horizontalRule', label: '', icon: 'i-lucide-separator-horizontal' },
-  { kind: 'imageUpload', icon: 'i-lucide-image', label: 'Add image', variant: 'soft' },
+  {
+    kind: 'imageUpload',
+    icon: 'i-lucide-image',
+    label: isImageUploading.value ? 'Uploading image' : 'Add image',
+    loading: isImageUploading.value,
+    variant: 'soft'
+  },
   { kind: 'youtubeEmbed', icon: 'i-lucide-youtube', label: 'Embed video', variant: 'soft' }
-]
+])
 
 const { mutate: upsertPost, isPending: isSaving } = useConvexMutation(api.posts.upsert)
 const { mutate: removePost } = useConvexMutation(api.posts.remove)
@@ -278,6 +329,14 @@ function createNewPost() {
     class="flex w-full min-w-0 flex-col overflow-hidden border border-muted/40 bg-default"
     :class="editorShellClass"
   >
+    <input
+      ref="imageInput"
+      type="file"
+      accept="image/*"
+      class="hidden"
+      @change="handleImageFileChange"
+    >
+
     <UEditor
       v-slot="{ editor }"
       v-model="content"

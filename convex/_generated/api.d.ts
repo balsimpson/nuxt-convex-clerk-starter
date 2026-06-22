@@ -9,6 +9,7 @@
  */
 
 import type * as contact from "../contact.js";
+import type * as contactEmail from "../contactEmail.js";
 import type * as posts from "../posts.js";
 import type * as team from "../team.js";
 import type * as uploads from "../uploads.js";
@@ -21,6 +22,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   contact: typeof contact;
+  contactEmail: typeof contactEmail;
   posts: typeof posts;
   team: typeof team;
   uploads: typeof uploads;

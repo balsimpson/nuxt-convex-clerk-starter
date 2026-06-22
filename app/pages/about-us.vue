@@ -11,7 +11,7 @@
         <section class="border-b border-[#d9c9b7] pb-12 lg:pb-16">
           <div class="grid gap-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-end lg:gap-16">
             <div class="max-w-2xl">
-              <Motion
+              <!-- <Motion
                 as="p"
                 class="mb-5 text-xs font-semibold uppercase text-[#5f3724]"
                 :initial="revealInitial"
@@ -19,7 +19,7 @@
                 :transition="revealTransition(0.04)"
               >
                 About Us
-              </Motion>
+              </Motion> -->
 
               <Motion
                 as="h1"
@@ -38,7 +38,7 @@
                 :animate="revealVisible"
                 :transition="revealTransition(0.28)"
               >
-                Manasa Centre for Development and Social Action (commonly known as Manasa) is a grassroots nonprofit organization headquartered in Bangalore, Karnataka, India. Established in 1995 by the late visionary Shri Mathews Philip, Manasa has evolved over the past three decades into a dynamic and deeply rooted civil society organization.
+                Manasa Centre for Development and Social Action (commonly known as Manasa) is a grassroots nonprofit organization headquartered in Bangalore, Karnataka, India. <span class="font-bold">Established in 1995 by the late visionary Shri Mathews Philip</span>, Manasa has evolved over the past three decades into a dynamic and deeply rooted civil society organization.
               </Motion>
 
               <Motion
@@ -48,13 +48,13 @@
                 :animate="revealVisible"
                 :transition="revealTransition(0.4)"
               >
-                Manasa Centre for Development and Social Action is committed to building a just, inclusive, and equitable society. Guided by the principles of dignity, empowerment, and participatory development, Manasa has spent over three decades empowering women, children, and marginalized communities across Karnataka and neighboring states.
+                Manasa Centre for Development and Social Action is committed to building a just, inclusive, and equitable society. Guided by the principles of dignity, empowerment, and participatory development, Manasa has spent over <span class="font-bold">three decades empowering women, children, and marginalized communities</span> across Karnataka and neighboring states.
               </Motion>
             </div>
 
             <Motion
               as="figure"
-              class="border border-[#d0bda8] bg-[#efe2d0] p-2"
+              class="rounded-md"
               :initial="{ opacity: 0, y: 22, scale: 0.97 }"
               :animate="{ opacity: 1, y: 0, scale: 1 }"
               :transition="revealTransition(0.18)"
@@ -111,7 +111,7 @@
         </section>
 
         <section class="py-12 lg:py-16">
-          <div class="grid gap-10 border-y border-[#d9c9b7] py-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:gap-16 lg:py-14">
+          <div class="grid gap-10  border-[#d9c9b7] py-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:gap-16 lg:py-14">
             <div class="max-w-2xl">
               <Motion
                 as="p"
@@ -132,61 +132,96 @@
                 :in-view-options="viewOnce"
                 :transition="revealTransition(0.08)"
               >
-                The people who shaped and guide Manasa.
-              </Motion>
-
-              <Motion
-                as="p"
-                class="mt-6 text-base leading-8 text-[#4f4134] sm:text-lg"
-                :initial="revealInitial"
-                :while-in-view="revealVisible"
-                :in-view-options="viewOnce"
-                :transition="revealTransition(0.16)"
-              >
-                Meet the founders and executive leadership guiding Manasa's mission across advocacy and community action.
+                The people who <span class="font-bold">shaped</span> and guide Manasa.
               </Motion>
             </div>
 
             <div class="border-t border-[#d9c9b7] lg:border-t-0">
-              <Motion
-                v-for="(member, index) in leadershipMembers"
-                :key="member.name"
-                as="article"
-                class="grid gap-4 border-b border-[#d9c9b7] py-5 sm:grid-cols-[5.5rem_1fr] sm:gap-5 lg:py-6"
-                :initial="{ opacity: 0, y: 18 }"
-                :while-in-view="{ opacity: 1, y: 0 }"
-                :in-view-options="viewOnce"
-                :transition="revealTransition(0.12 + index * 0.08)"
-              >
-                <div class="h-24 w-24 overflow-hidden rounded-full border border-[#8f6240] bg-[#ead6bf] sm:h-20 sm:w-20">
-                  <img
-                    :src="member.imageUrl"
-                    :alt="member.name"
-                    class="h-full w-full scale-[1.18] object-cover object-center"
-                  >
-                </div>
+              <UAlert
+                v-if="leadershipMembersError"
+                color="error"
+                variant="soft"
+                :title="leadershipMembersError.message"
+                class="mt-6"
+              />
 
-                <div class="min-w-0">
-                  <h3 class="font-serif text-2xl leading-tight text-[#2f2118]">
-                    {{ member.name }}
-                  </h3>
-                  <p class="mt-1 text-sm leading-6 text-[#4f4134] sm:text-base">
-                    {{ member.designation }}
-                  </p>
-                  <details class="group mt-4">
-                    <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-[#5f3724] outline-none [&::-webkit-details-marker]:hidden">
-                      <span>Show more</span>
-                      <UIcon
-                        name="i-lucide-chevron-down"
-                        class="h-4 w-4 transition-transform duration-200 group-open:rotate-180"
-                      />
-                    </summary>
-                    <p class="mt-3 text-sm leading-7 text-[#4f4134]">
-                      {{ member.bio }}
-                    </p>
-                  </details>
+              <div
+                v-else-if="leadershipMembersPending"
+                class="divide-y divide-[#d9c9b7]"
+              >
+                <div
+                  v-for="index in 2"
+                  :key="index"
+                  class="grid gap-4 py-5 sm:grid-cols-[5.5rem_1fr] sm:gap-5 lg:py-6"
+                >
+                  <USkeleton class="h-24 w-24 rounded-full bg-[#eadfce] sm:h-20 sm:w-20" />
+                  <div class="space-y-3 pt-1">
+                    <USkeleton class="h-6 w-48 rounded-none bg-[#eadfce]" />
+                    <USkeleton class="h-4 w-36 rounded-none bg-[#eadfce]" />
+                    <USkeleton class="h-3 w-full rounded-none bg-[#eadfce]" />
+                    <USkeleton class="h-3 w-5/6 rounded-none bg-[#eadfce]" />
+                  </div>
                 </div>
-              </Motion>
+              </div>
+
+              <p
+                v-else-if="!leadershipMembers.length"
+                class="border-b border-[#d9c9b7] py-5 text-sm text-[#4f4134]"
+              >
+                No leadership members found.
+              </p>
+
+              <template v-else>
+                <Motion
+                  v-for="(member, index) in leadershipMembers"
+                  :key="member._id"
+                  as="article"
+                  class="grid gap-4 border-b border-[#d9c9b7] py-5 sm:grid-cols-[5.5rem_1fr] sm:gap-5 lg:py-6"
+                  :initial="{ opacity: 0, y: 18 }"
+                  :while-in-view="{ opacity: 1, y: 0 }"
+                  :in-view-options="viewOnce"
+                  :transition="revealTransition(0.12 + index * 0.08)"
+                >
+                  <div class="h-24 w-24 overflow-hidden rounded-full border border-[#8f6240] bg-[#ead6bf] sm:h-20 sm:w-20">
+                    <img
+                      :src="member.imageUrl"
+                      :alt="member.fullname"
+                      class="h-full w-full scale-[1.18] object-cover object-center"
+                    >
+                  </div>
+
+                  <div class="min-w-0">
+                    <h3 class="font-serif text-2xl leading-tight text-[#2f2118]">
+                      {{ member.fullname }}
+                    </h3>
+                    <p class="mt-1 text-sm leading-6 text-[#4f4134] sm:text-base">
+                      {{ member.designation }}
+                    </p>
+                    <p class="mt-4 text-sm leading-7 text-[#4f4134]">
+                      {{ getBioParagraphs(member.bio)[0] }}
+                    </p>
+                    <details
+                      v-if="getBioParagraphs(member.bio).length > 1"
+                      class="group mt-4"
+                    >
+                      <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-[#5f3724] outline-none [&::-webkit-details-marker]:hidden">
+                        <span>Show more</span>
+                        <UIcon
+                          name="i-lucide-chevron-down"
+                          class="h-4 w-4 transition-transform duration-200 group-open:rotate-180"
+                        />
+                      </summary>
+                      <p
+                        v-for="(paragraph, paragraphIndex) in getBioParagraphs(member.bio).slice(1)"
+                        :key="paragraphIndex"
+                        class="mt-3 text-sm leading-7 text-[#4f4134]"
+                      >
+                        {{ paragraph }}
+                      </p>
+                    </details>
+                  </div>
+                </Motion>
+              </template>
             </div>
           </div>
         </section>
@@ -198,7 +233,7 @@
                 Our Team
               </p>
               <h2 class="mt-4 font-serif text-4xl font-normal leading-[1.02] text-[#2f2118] text-balance sm:text-5xl">
-                Board members guiding Manasa's mission.
+                Board members <span class="font-bold">guiding</span> Manasa's mission.
               </h2>
             </div>
             <p class="max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg lg:pt-8">
@@ -275,13 +310,13 @@
         </section>
 
         <section class="pb-12 lg:pb-16">
-          <div class="mb-8 grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14">
+          <div class="mb-8 grid gap-6 lg:grid-cols-[1.62fr_1.18fr] lg:gap-14">
             <div>
               <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 Staff
               </p>
               <h2 class="mt-4 font-serif text-4xl font-normal leading-[1.02] text-[#2f2118] text-balance sm:text-5xl">
-                The team carrying programs into daily work.
+                The team <span class="font-bold">carrying</span> programs into daily work.
               </h2>
             </div>
             <p class="max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg lg:pt-8">
@@ -445,21 +480,37 @@
             <p class="mb-5 text-xs font-semibold uppercase text-[#5f3724]">
               In the Community
             </p>
-            <div class="grid gap-3 sm:grid-cols-2">
-              <figure
-                v-for="image in communityImages"
-                :key="image.src"
-                class="border border-[#d0bda8] bg-[#efe2d0] p-2"
-              >
+            <UCarousel
+              v-slot="{ item: image }"
+              :items="communityImages"
+              :autoplay="{
+                delay: 4500,
+                stopOnInteraction: false,
+                stopOnMouseEnter: true
+              }"
+              loop
+              arrows
+              dots
+              aria-label="Manasa in the community"
+              class="pb-8"
+              :ui="{
+                item: 'basis-full sm:basis-1/2',
+                prev: 'start-3 sm:start-3 bg-[#fbf7ef]/90 text-[#2f2118] ring-[#d0bda8] hover:bg-[#fbf7ef]',
+                next: 'end-3 sm:end-3 bg-[#fbf7ef]/90 text-[#2f2118] ring-[#d0bda8] hover:bg-[#fbf7ef]',
+                dots: '-bottom-1 gap-2',
+                dot: 'size-2 bg-[#d0bda8] data-[state=active]:bg-[#5f3724]'
+              }"
+            >
+              <figure>
                 <img
-                  :src="image.src"
+                  :src="image.imageUrl"
                   :alt="image.alt"
                   loading="lazy"
                   class="aspect-[4/3] w-full object-cover"
-                  :class="image.class"
+                  :class="image.objectPosition"
                 >
               </figure>
-            </div>
+            </UCarousel>
           </div>
         </section>
       </div>
@@ -481,51 +532,76 @@ function revealTransition(delay = 0) {
   return { duration: 0.76, delay, ease: motionEase }
 }
 
-const leadershipMembers = [
-  {
-    name: 'Late Shri. Mathews Philip',
-    designation: 'Founder',
-    category: 'Founding Leadership',
-    imageUrl: '/mathew-philip.jpeg',
-    bio: 'A visionary founder who established Manasa in 1995 and shaped its long-term commitment to community-based development and social action.'
-  },
-  {
-    name: 'Mariam Mathews',
-    designation: 'Executive Director & Secretary',
-    category: 'Executive Leadership',
-    imageUrl: '/mariam.jpeg',
-    bio: 'Leads the organization’s day-to-day strategy, partnerships, and program direction with a focus on inclusive, rights-based work.'
-  }
-] satisfies Array<{
-  name: string
-  designation: string
-  category: string
-  imageUrl: string
-  bio: string
-}>
+function getBioParagraphs(bio: string) {
+  return bio
+    .split(/\n\s*\n/)
+    .map(paragraph => paragraph.trim())
+    .filter(Boolean)
+}
 
-const communityImages = [
+interface CommunityImage {
+  id: string
+  imageUrl: string
+  alt: string
+  objectPosition: 'object-center' | 'object-bottom'
+  sortOrder: number
+}
+
+const communityImages: CommunityImage[] = [
   {
-    src: '/aboutus1.jpeg',
+    id: 'community-1',
+    imageUrl: '/aboutus1.jpeg',
     alt: 'Manasa community program gathering',
-    class: ''
+    objectPosition: 'object-center',
+    sortOrder: 0
   },
   {
-    src: '/aboutus2.jpeg',
+    id: 'community-2',
+    imageUrl: '/aboutus2.jpeg',
     alt: 'Manasa team working with community members',
-    class: ''
+    objectPosition: 'object-center',
+    sortOrder: 1
   },
   {
-    src: '/aboutus3.jpeg',
+    id: 'community-3',
+    imageUrl: '/aboutus3.jpeg',
     alt: 'Participants at a Manasa outreach program',
-    class: 'object-bottom'
+    objectPosition: 'object-bottom',
+    sortOrder: 2
   },
   {
-    src: '/aboutus4.jpeg',
+    id: 'community-4',
+    imageUrl: '/aboutus4.jpeg',
     alt: 'Community members during a Manasa field activity',
-    class: 'object-bottom'
+    objectPosition: 'object-bottom',
+    sortOrder: 3
   }
-] as const
+]
+
+const {
+  data: founders,
+  isPending: foundersPending,
+  error: foundersError
+} = useConvexQuery(api.team.listByCategory, {
+  category: 'Founder',
+  limit: 100
+})
+
+const {
+  data: executiveDirectors,
+  isPending: executiveDirectorsPending,
+  error: executiveDirectorsError
+} = useConvexQuery(api.team.listByCategory, {
+  category: 'Executive Director',
+  limit: 100
+})
+
+const leadershipMembers = computed(() => [
+  ...(founders.value ?? []),
+  ...(executiveDirectors.value ?? [])
+])
+const leadershipMembersPending = computed(() => foundersPending.value || executiveDirectorsPending.value)
+const leadershipMembersError = computed(() => foundersError.value ?? executiveDirectorsError.value)
 
 const {
   data: boardMembers,

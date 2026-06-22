@@ -22,7 +22,10 @@ export default defineSchema({
   })
     .index('by_slug', ['slug'])
     .index('by_status_and_published_at', ['status', 'published_at'])
-    .index('by_published_at', ['published_at']),
+    .index('by_published_at', ['published_at'])
+    .searchIndex('search_title', {
+      searchField: 'title'
+    }),
   contactSubmissions: defineTable({
     name: v.string(),
     email: v.string(),

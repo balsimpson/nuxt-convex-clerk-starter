@@ -22,7 +22,7 @@
             :in-view-options="viewOnce"
             :transition="revealTransition(0.08)"
           >
-            To empower marginalized communities
+            To <span class="font-bold">empower</span> marginalized communities
           </Motion>
 
           <Motion
@@ -36,21 +36,6 @@
             Particularly <span class="font-semibold text-[#3a2718]">dalits, tribals, women, children, and minorities</span> by enabling them to protect and assert their rights, live with dignity, and participate actively in democratic and developmental processes.
           </Motion>
 
-          <Motion
-            as="div"
-            class="mt-9 border-l border-[#8a6a52] pl-5"
-            :initial="revealInitial"
-            :while-in-view="revealVisible"
-            :in-view-options="viewOnce"
-            :transition="revealTransition(0.24)"
-          >
-            <p class="text-xs font-semibold uppercase text-[#5f3724]">
-              Mission Statement
-            </p>
-            <p class="mt-3 font-serif text-2xl leading-9 text-[#3a2718] sm:text-3xl">
-              Rights protection, dignity, and participation are treated as one continuous public practice.
-            </p>
-          </Motion>
         </div>
 
         <div>
@@ -70,9 +55,7 @@
                 A practical ecosystem of legal access, education, and livelihoods.
               </p>
             </div>
-            <div class="hidden text-xs font-semibold uppercase text-[#5f3724] sm:block">
-              8 programs
-            </div>
+
           </Motion>
 
           <div class="grid sm:grid-cols-2 sm:border-l sm:border-[#d9c9b7]">

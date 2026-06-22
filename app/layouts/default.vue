@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen bg-[#fbf7ef] text-[#2f2118]">
     <header class="sticky top-0 z-50 border-b border-[#d9c9b7]/80 bg-[#fbf7ef]/92 backdrop-blur-xl">
-      <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+      <div class="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-3 sm:px-6 md:flex-row md:items-center md:justify-between md:px-8">
         <NuxtLink
           to="/"
-          class="flex items-center gap-4 self-start"
+          class="flex items-center gap-4 md:self-start"
           aria-label="Manasa home"
         >
           <div class="flex h-[3.25rem] w-[3.25rem] items-center justify-center overflow-hidden">
@@ -16,10 +16,10 @@
           </div>
 
           <div class="min-w-0 leading-tight">
-            <p class="font-serif text-xl leading-none text-[#2f2118]">
+            <p class="font-serif text-xl leading-none text-[#2f2118] font-semibold">
               Manasa
             </p>
-            <p class="mt-1 max-w-[14rem] text-xs leading-5 text-[#4f4134] sm:max-w-none sm:text-sm">
+            <p class="mt-1 max-w-[14rem] text-xs leading-5 font-semibold text-[#4f4134] sm:max-w-none sm:text-sm">
               Center for Development and Social Action
             </p>
           </div>

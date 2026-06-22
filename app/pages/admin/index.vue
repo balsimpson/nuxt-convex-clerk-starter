@@ -27,6 +27,8 @@ type BlogPost = {
 const convex = useConvexClient()
 const toast = useToast()
 const posts = ref<BlogPost[]>([])
+const searchQuery = ref('')
+const activeSearchQuery = ref('')
 const cursor = ref<string | null>(null)
 const isDone = ref(false)
 const isLoadingInitial = ref(true)
@@ -40,6 +42,8 @@ const sentinel = ref<HTMLElement | null>(null)
 const sentinelVisible = ref(false)
 
 let observer: IntersectionObserver | null = null
+let searchDebounce: ReturnType<typeof setTimeout> | null = null
+let requestGeneration = 0
 const batchSize = 8
 
 function formatPublishedAt(value: unknown) {
@@ -108,6 +112,7 @@ async function loadMorePosts() {
     return
   }
 
+  const generation = requestGeneration
   isLoadingMore.value = true
   errorMessage.value = ''
   let failed = false
@@ -117,29 +122,48 @@ async function loadMorePosts() {
       paginationOpts: {
         numItems: batchSize,
         cursor: cursor.value
-      }
+      },
+      searchQuery: activeSearchQuery.value || undefined
     }) as {
       page: BlogPost[]
       isDone: boolean
       continueCursor: string
     }
 
-    posts.value.push(...response.page)
-    cursor.value = response.isDone ? null : response.continueCursor
-    isDone.value = response.isDone
+    if (generation === requestGeneration) {
+      posts.value.push(...response.page)
+      cursor.value = response.isDone ? null : response.continueCursor
+      isDone.value = response.isDone
+    }
   } catch (error) {
     failed = true
-    errorMessage.value = error instanceof Error ? error.message : 'Failed to load blog posts.'
+    if (generation === requestGeneration) {
+      errorMessage.value = error instanceof Error ? error.message : 'Failed to load blog posts.'
+    }
   } finally {
-    isLoadingMore.value = false
-    isLoadingInitial.value = false
+    if (generation === requestGeneration) {
+      isLoadingMore.value = false
+      isLoadingInitial.value = false
 
-    await nextTick()
+      await nextTick()
 
-    if (!failed && sentinelVisible.value && !isDone.value && !isLoadingMore.value) {
-      void loadMorePosts()
+      if (!failed && sentinelVisible.value && !isDone.value && !isLoadingMore.value) {
+        void loadMorePosts()
+      }
     }
   }
+}
+
+function resetPostsForSearch(query: string) {
+  requestGeneration += 1
+  activeSearchQuery.value = query
+  posts.value = []
+  cursor.value = null
+  isDone.value = false
+  isLoadingInitial.value = true
+  isLoadingMore.value = false
+  errorMessage.value = ''
+  void loadMorePosts()
 }
 
 function setupObserver() {
@@ -178,6 +202,24 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   observer?.disconnect()
+
+  if (searchDebounce) {
+    clearTimeout(searchDebounce)
+  }
+})
+
+watch(searchQuery, (value) => {
+  if (searchDebounce) {
+    clearTimeout(searchDebounce)
+  }
+
+  searchDebounce = setTimeout(() => {
+    const query = value.trim()
+
+    if (query !== activeSearchQuery.value) {
+      resetPostsForSearch(query)
+    }
+  }, 300)
 })
 
 watch(deleteModalOpen, (isOpen) => {
@@ -236,6 +278,33 @@ watch(deleteModalOpen, (isOpen) => {
             :title="errorMessage"
             class="mb-6"
           />
+
+          <div class="border-t border-default py-4">
+            <UInput
+              v-model="searchQuery"
+              icon="i-lucide-search"
+              placeholder="Search blog posts"
+              aria-label="Search blog posts"
+              autocomplete="off"
+              class="w-full sm:max-w-sm"
+              :ui="{ trailing: 'pe-1' }"
+            >
+              <template
+                v-if="searchQuery"
+                #trailing
+              >
+                <UButton
+                  type="button"
+                  color="neutral"
+                  variant="link"
+                  size="sm"
+                  icon="i-lucide-x"
+                  aria-label="Clear blog search"
+                  @click="searchQuery = ''"
+                />
+              </template>
+            </UInput>
+          </div>
 
           <div class="divide-y divide-default border-t border-default">
             <div
@@ -315,6 +384,9 @@ watch(deleteModalOpen, (isOpen) => {
             </span>
             <span v-else-if="isLoadingMore">
               Loading more posts...
+            </span>
+            <span v-else-if="activeSearchQuery && isDone && !posts.length">
+              No blog posts match your search.
             </span>
             <span v-else-if="isDone && posts.length">
               You have reached the end of the archive.

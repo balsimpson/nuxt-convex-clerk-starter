@@ -72,7 +72,7 @@ async function handleDelete(item: TeamListItem) {
 <template>
   <UPage>
     <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <UPageHeader
+      <!-- <UPageHeader
         headline="Admin"
         title="Team"
         :links="[
@@ -83,10 +83,10 @@ async function handleDelete(item: TeamListItem) {
             variant: 'outline'
           }
         ]"
-      />
+      /> -->
 
-      <div class="py-8">
-        <section class="border-y border-default">
+      <div class="pb-8">
+        <section class="border-b border-default">
           <div class="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
             <div class="space-y-2">
               <p class="text-xs uppercase tracking-[0.28em] text-muted">
@@ -96,7 +96,7 @@ async function handleDelete(item: TeamListItem) {
                 Team records
               </h2>
               <p class="max-w-2xl text-sm leading-6 text-muted">
-                Create, edit, and remove team members in separate category tables, ordered by oldest creation date first.
+                Create, edit, and remove team members.
               </p>
             </div>
 

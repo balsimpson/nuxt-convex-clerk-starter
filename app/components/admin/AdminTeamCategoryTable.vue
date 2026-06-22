@@ -67,6 +67,7 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
           {{ title }}
         </h3>
         <UBadge
+          v-if="isSortableCategory"
           color="neutral"
           variant="soft"
         >
@@ -120,7 +121,9 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
       class="mt-4"
     >
       <div class="flex items-center justify-between gap-3 text-xs text-muted">
-        <p>Drag the grip to reorder this category.</p>
+        <p v-if="isSortableCategory">
+          Drag the grip to reorder this category.
+        </p>
         <p v-if="reorderIsPending">
           Saving order...
         </p>

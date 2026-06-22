@@ -5,8 +5,9 @@ import type { EditorCustomHandlers, EditorToolbarItem } from '@nuxt/ui'
 import type { Editor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Youtube } from '@tiptap/extension-youtube'
-import { ImageUpload } from '~/utils/EditorImageUploadExtension'
-import { markRaw } from 'vue'
+import { createImagePasteExtension } from '~/utils/EditorImagePasteExtension'
+import { watchDebounced } from '@vueuse/core'
+import { markRaw, shallowRef } from 'vue'
 import { useConvexClient } from 'convex-vue'
 
 type BlogPost = {
@@ -34,13 +35,14 @@ const props = defineProps<{
 
 const convex = useConvexClient()
 const toast = useToast()
+const { insertEditorImage, uploadEditorImage } = useEditorImageUpload()
 
 const title = ref('')
 const content = ref('')
 const slug = ref('')
 const description = ref('')
 const image = ref('')
-const status = ref('published')
+const status = ref('draft')
 const publishedDate = ref('')
 const tags = ref('')
 const authorName = ref('')
@@ -49,28 +51,94 @@ const authorPhoto = ref('')
 const authorUid = ref('')
 const isSaving = ref(false)
 const errorMessage = ref('')
+const lastAutosaveSignature = ref('')
+const savedPostId = ref<Id<'posts'> | null>(props.post?._id ?? null)
 const isDetailsOpen = ref(false)
 const titleTextarea = ref<HTMLTextAreaElement | null>(null)
+const imageInput = ref<HTMLInputElement | null>(null)
+const pendingImageEditor = shallowRef<Editor | null>(null)
+const pendingImageSelection = ref<{ from: number, to: number } | null>(null)
+const isImageUploading = ref(false)
 
 const isEditMode = computed(() => props.mode === 'edit')
-const saveLabel = computed(() => isEditMode.value ? 'Save changes' : 'Create post')
-const publicPostUrl = computed(() => isEditMode.value && props.post?.slug ? `/blog/${props.post.slug}` : '')
+const saveLabel = computed(() => (status.value === 'published' ? 'Unpublish' : 'Publish'))
+const saveIcon = computed(() => (status.value === 'published' ? 'i-lucide-eye-off' : 'i-lucide-rocket'))
+const publicPostUrl = computed(() => isEditMode.value && slug.value ? `/blog/${slug.value}` : '')
 const editorColumnClass = 'w-full px-5 sm:px-8 lg:px-10'
+const featuredImage = computed(() => extractFirstMarkdownImage(content.value) || image.value)
 
 const extensions = [
-  markRaw(ImageUpload),
+  markRaw(createImagePasteExtension({
+    upload: async file => ({
+      src: await uploadEditorImage(file),
+      alt: file.name,
+      title: file.name
+    }),
+    onError: (error) => {
+      toast.add({
+        title: 'Image paste failed',
+        description: error instanceof Error ? error.message : 'The pasted image could not be uploaded.',
+        color: 'error'
+      })
+    }
+  })),
   markRaw(Youtube.configure({ inline: false, controls: true })),
   markRaw(Placeholder.configure({
     placeholder: 'Write the blog post.'
   }))
 ]
 
+function openImagePicker(editor: Editor) {
+  if (isImageUploading.value || !imageInput.value) return
+
+  pendingImageEditor.value = editor
+  pendingImageSelection.value = {
+    from: editor.state.selection.from,
+    to: editor.state.selection.to
+  }
+  imageInput.value.value = ''
+  imageInput.value.click()
+}
+
+async function handleImageFileChange(event: Event) {
+  const input = event.currentTarget as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+
+  if (!file) return
+
+  const editor = pendingImageEditor.value
+  const selection = pendingImageSelection.value
+  isImageUploading.value = true
+
+  try {
+    if (!editor || !selection || editor.isDestroyed) {
+      throw new Error('The image insertion point is no longer available.')
+    }
+
+    await insertEditorImage(editor, selection, file)
+  } catch (error) {
+    toast.add({
+      title: 'Image upload failed',
+      description: error instanceof Error ? error.message : 'The image could not be uploaded.',
+      color: 'error'
+    })
+  } finally {
+    isImageUploading.value = false
+    pendingImageEditor.value = null
+    pendingImageSelection.value = null
+  }
+}
+
 const customHandlers = {
   imageUpload: {
-    canExecute: (editor: Editor) => editor.can().insertContent({ type: 'imageUpload' }),
-    execute: (editor: Editor) => editor.chain().focus().insertContent({ type: 'imageUpload' }),
-    isActive: (editor: Editor) => editor.isActive('imageUpload'),
-    isDisabled: undefined
+    canExecute: () => !isImageUploading.value,
+    execute: (editor: Editor) => {
+      openImagePicker(editor)
+      return editor.chain()
+    },
+    isActive: () => false,
+    isDisabled: () => isImageUploading.value
   },
   youtubeEmbed: {
     canExecute: () => true,
@@ -83,7 +151,7 @@ const customHandlers = {
   }
 } satisfies EditorCustomHandlers
 
-const toolbarItems: EditorToolbarItem[] = [
+const toolbarItems = computed<EditorToolbarItem[]>(() => [
   { kind: 'mark', mark: 'bold', icon: 'i-lucide-bold' },
   { kind: 'mark', mark: 'italic', icon: 'i-lucide-italic' },
   { kind: 'heading', level: 1, icon: 'i-lucide-heading-1' },
@@ -95,9 +163,15 @@ const toolbarItems: EditorToolbarItem[] = [
   { kind: 'blockquote', icon: 'i-lucide-quote' },
   { kind: 'link', icon: 'i-lucide-link' },
   { kind: 'horizontalRule', label: '', icon: 'i-lucide-separator-horizontal' },
-  { kind: 'imageUpload', icon: 'i-lucide-image', label: 'Add image', variant: 'soft' },
+  {
+    kind: 'imageUpload',
+    icon: 'i-lucide-image',
+    label: isImageUploading.value ? 'Uploading image' : 'Add image',
+    loading: isImageUploading.value,
+    variant: 'soft'
+  },
   { kind: 'youtubeEmbed', icon: 'i-lucide-youtube', label: 'Embed video', variant: 'soft' }
-]
+])
 
 const editorUi = {
   base: 'flex-1 min-w-0 w-full max-w-none focus:outline-none',
@@ -111,6 +185,12 @@ function normalizeSlug(value: string) {
     .replace(/['"]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+}
+
+function extractFirstMarkdownImage(value: string) {
+  const match = value.match(/!\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\s*\)/i)
+
+  return (match?.[1] ?? match?.[2] ?? '').trim()
 }
 
 function formatDateInput(value: unknown) {
@@ -242,27 +322,56 @@ function parseTags(value: string) {
     .filter(Boolean)
 }
 
+function buildAutosaveSignature() {
+  const trimmedTitle = title.value.trim()
+  const currentSlug = normalizeSlug(slug.value || trimmedTitle) || 'untitled'
+  const currentDescription = description.value.trim() || content.value.trim().slice(0, 180) || trimmedTitle || 'Untitled'
+  const currentImage = featuredImage.value
+  const currentAuthorName = authorName.value.trim() || props.post?.author.name || 'Manasa'
+  const currentPublishedDate = publishedDate.value || formatDateInput(props.post?.published_at)
+
+  return JSON.stringify({
+    title: trimmedTitle,
+    slug: currentSlug,
+    description: currentDescription,
+    image: currentImage,
+    tags: parseTags(tags.value),
+    published_at: new Date(`${currentPublishedDate}T00:00:00.000Z`).toISOString(),
+    content: content.value,
+    author: {
+      name: currentAuthorName,
+      email: authorEmail.value.trim(),
+      photo: authorPhoto.value.trim(),
+      uid: authorUid.value.trim()
+    }
+  })
+}
+
 function fillFromPost(post: BlogPost | null | undefined) {
+  const nextContent = contentToMarkdown(post?.content)
+
   title.value = post?.title ?? ''
   slug.value = post?.slug ?? ''
   description.value = post?.description ?? ''
-  image.value = post?.image ?? ''
-  status.value = post?.status ?? 'published'
+  image.value = extractFirstMarkdownImage(nextContent) ? '' : post?.image ?? ''
+  status.value = post?.status ?? 'draft'
   publishedDate.value = formatDateInput(post?.published_at)
   tags.value = post?.tags.join(', ') ?? ''
   authorName.value = post?.author.name ?? ''
   authorEmail.value = post?.author.email ?? ''
   authorPhoto.value = post?.author.photo ?? ''
   authorUid.value = post?.author.uid ?? ''
-  content.value = contentToMarkdown(post?.content)
+  content.value = nextContent
   errorMessage.value = ''
+  savedPostId.value = post?._id ?? null
+  lastAutosaveSignature.value = buildAutosaveSignature()
 }
 
-function buildPayload() {
+function buildPayload(nextStatus: 'draft' | 'published') {
   const trimmedTitle = title.value.trim()
   const currentSlug = normalizeSlug(slug.value || trimmedTitle)
   const currentDescription = description.value.trim() || content.value.trim().slice(0, 180) || trimmedTitle
-  const currentImage = image.value.trim() || props.post?.image || ''
+  const currentImage = featuredImage.value
   const currentAuthorName = authorName.value.trim() || props.post?.author.name || 'Manasa'
   const currentPublishedDate = publishedDate.value || formatDateInput(props.post?.published_at)
 
@@ -274,7 +383,7 @@ function buildPayload() {
     slug: currentSlug,
     description: currentDescription,
     image: currentImage,
-    status: status.value || props.post?.status || 'published',
+    status: nextStatus,
     tags: parseTags(tags.value),
     published_at: new Date(`${currentPublishedDate}T00:00:00.000Z`).toISOString(),
     content: content.value,
@@ -299,7 +408,7 @@ function resizeTitleTextarea() {
   element.style.height = `${element.scrollHeight}px`
 }
 
-async function savePost() {
+async function savePost(nextStatus: 'draft' | 'published' = 'draft', isAutoSave = false) {
   if (isSaving.value) {
     return
   }
@@ -308,28 +417,60 @@ async function savePost() {
   errorMessage.value = ''
 
   try {
-    const payload = buildPayload()
+    const payload = buildPayload(nextStatus)
 
-    if (isEditMode.value && props.post) {
+    const currentPostId = savedPostId.value || props.post?._id || null
+
+    if (currentPostId) {
       await convex.mutation(api.posts.update, {
-        id: props.post._id,
+        id: currentPostId,
         ...payload
       })
     } else {
       const id = await convex.mutation(api.posts.create, payload)
-      await navigateTo(`/admin/blog/${id}`)
+      savedPostId.value = id
+
+      if (nextStatus === 'published') {
+        await navigateTo(`/admin/blog/${id}`)
+      }
     }
 
-    toast.add({
-      title: isEditMode.value ? 'Blog post updated' : 'Blog post created',
-      color: 'success'
-    })
+    if (!isAutoSave) {
+      toast.add({
+        title: isEditMode.value ? 'Blog post updated' : 'Blog post created',
+        color: 'success'
+      })
+    }
+    status.value = nextStatus
+    lastAutosaveSignature.value = buildAutosaveSignature()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Failed to save blog post.'
   } finally {
     isSaving.value = false
   }
 }
+
+watchDebounced(
+  [title, slug, description, content, publishedDate, tags, authorName, authorEmail, authorPhoto, authorUid],
+  () => {
+    if (isSaving.value) {
+      return
+    }
+
+    if (!title.value.trim() && !content.value.trim()) {
+      return
+    }
+
+    const signature = buildAutosaveSignature()
+
+    if (signature === lastAutosaveSignature.value) {
+      return
+    }
+
+    void savePost('draft', true)
+  },
+  { debounce: 2000, maxWait: 5000 }
+)
 
 watch(() => props.post, fillFromPost, { immediate: true })
 
@@ -349,8 +490,16 @@ onMounted(() => {
 <template>
   <form
     class="min-w-0"
-    @submit.prevent="savePost"
+    @submit.prevent="savePost(status === 'published' ? 'draft' : 'published')"
   >
+    <input
+      ref="imageInput"
+      type="file"
+      accept="image/*"
+      class="hidden"
+      @change="handleImageFileChange"
+    >
+
     <UAlert
       v-if="errorMessage"
       color="error"
@@ -403,6 +552,7 @@ onMounted(() => {
                   variant="soft"
                   size="sm"
                   icon="i-lucide-settings"
+                  type="button"
                   @click="isDetailsOpen = true"
                 >
                   Settings
@@ -413,7 +563,7 @@ onMounted(() => {
                   color="primary"
                   size="sm"
                   :loading="isSaving"
-                  icon="i-lucide-save"
+                  :icon="saveIcon"
                 >
                   {{ saveLabel }}
                 </UButton>
@@ -505,27 +655,18 @@ onMounted(() => {
 
           <UFormField
             name="image"
-            label="Featured Image URL"
+            label="Featured image"
+            help="The first image in the article is used automatically."
           >
             <UInput
-              v-model="image"
+              :model-value="featuredImage"
               icon="i-lucide-image"
+              readonly
               class="w-full"
             />
           </UFormField>
 
           <div class="grid gap-4 sm:grid-cols-2">
-            <UFormField
-              name="status"
-              label="Status"
-            >
-              <USelect
-                v-model="status"
-                :items="['published', 'draft']"
-                class="w-full"
-              />
-            </UFormField>
-
             <UFormField
               name="publishedDate"
               label="Published date"

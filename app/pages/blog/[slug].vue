@@ -357,9 +357,15 @@ function sanitizeUrl(value: string) {
   return isSafeUrl(trimmed) ? trimmed : ''
 }
 
+function matchMarkdownImage(value: string) {
+  return value.match(/!\[([^\]]*)\]\(\s*(?:<([^>]+)>|([^\s)]+))(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\s*\)/)
+}
+
 function parseMarkdownImage(value: string) {
-  const match = value.trim().match(/^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)$/)
-  const src = match ? sanitizeUrl(match[2] ?? '') : ''
+  const trimmed = value.trim()
+  const match = matchMarkdownImage(trimmed)
+  const isWholeValue = match?.index === 0 && match[0].length === trimmed.length
+  const src = isWholeValue ? sanitizeUrl(match?.[2] ?? match?.[3] ?? '') : ''
 
   return src
     ? {
@@ -367,6 +373,45 @@ function parseMarkdownImage(value: string) {
         src
       }
     : null
+}
+
+function splitInlineMarkdownImages(value: string) {
+  const sourceLines = value.replace(/\r\n/g, '\n').split('\n')
+  const lines: string[] = []
+  let isCodeFence = false
+
+  for (const sourceLine of sourceLines) {
+    if (/^```/.test(sourceLine.trim())) {
+      isCodeFence = !isCodeFence
+      lines.push(sourceLine)
+      continue
+    }
+
+    if (isCodeFence) {
+      lines.push(sourceLine)
+      continue
+    }
+
+    let remaining = sourceLine
+    let foundImage = false
+
+    while (remaining) {
+      const match = matchMarkdownImage(remaining)
+
+      if (!match || match.index == null) break
+
+      foundImage = true
+      const before = remaining.slice(0, match.index).trim()
+      if (before) lines.push(before)
+      lines.push(match[0])
+      remaining = remaining.slice(match.index + match[0].length)
+    }
+
+    const after = remaining.trim()
+    if (after || !foundImage) lines.push(after)
+  }
+
+  return lines
 }
 
 function getYouTubeEmbedUrl(value: string) {
@@ -441,7 +486,7 @@ function parseInlineMarkdown(value: string): InlineNode[] {
 
 function parseMarkdownBlocks(value: string): ContentBlock[] {
   const blocks: ContentBlock[] = []
-  const lines = value.replace(/\r\n/g, '\n').split('\n')
+  const lines = splitInlineMarkdownImages(value)
   let index = 0
 
   const isBlockStart = (line: string) => (

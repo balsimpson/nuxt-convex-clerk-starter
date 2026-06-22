@@ -39,7 +39,7 @@ function heroTextTransition(delay = 0) {
             :animate="heroTextVisible"
             :transition="heroTextTransition(0.16)"
           >
-            Towards a just and humane society
+            Towards a just and <span class="font-bold">humane</span> society
           </Motion>
 
           <Motion
@@ -84,7 +84,7 @@ function heroTextTransition(delay = 0) {
 
         <Motion
           as="figure"
-          class="border border-[#d0bda8] bg-[#efe2d0] p-2"
+          class="relative overflow-hidden rounded-lg bg-[#e9d8c5] shadow-lg"
           :initial="mediaInitial"
           :animate="mediaVisible"
           :transition="{ duration: 0.9, delay: 0.18, ease: motionEase }"
@@ -97,8 +97,8 @@ function heroTextTransition(delay = 0) {
         </Motion>
       </div>
 
-      <div class="pt-10 lg:pt-14">
-        <div class="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14">
+      <div class="pt-10 md:pt-14">
+        <div class="grid gap-8 md:grid-cols-[0.82fr_1.18fr] md:gap-14">
           <Motion
             as="div"
             class="max-w-sm"
@@ -143,7 +143,7 @@ function heroTextTransition(delay = 0) {
               :in-view-options="viewOnce"
               :transition="heroTextTransition(0.24)"
             >
-              Today, Manasa operates in <span class="font-semibold text-[#2f2118]">nine districts</span>, implementing preventive, promotive, and rights-restorative interventions through community engagement, advocacy, education, and monitoring.
+              Today, Manasa operates in <span class="font-semibold text-[#2f2118]">ten districts</span>, implementing preventive, promotive, and rights-restorative interventions through community engagement, advocacy, education, and monitoring.
             </Motion>
           </div>
         </div>
