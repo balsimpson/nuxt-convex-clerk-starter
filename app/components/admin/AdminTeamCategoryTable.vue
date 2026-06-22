@@ -60,7 +60,7 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
 </script>
 
 <template>
-  <UCard>
+  <section class="py-6">
     <div class="flex items-center justify-between gap-3">
       <div class="flex min-w-0 items-center gap-3">
         <h3 class="truncate text-xl font-semibold tracking-[-0.03em] text-highlighted">
@@ -95,12 +95,12 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
 
     <div
       v-else-if="isPending"
-      class="mt-4 space-y-4"
+      class="mt-4 divide-y divide-default"
     >
       <div
         v-for="index in 3"
         :key="index"
-        class="animate-pulse border-t border-default/50 py-4 first:border-t-0 first:pt-0"
+        class="animate-pulse py-4"
       >
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex min-w-0 items-center gap-3">
@@ -117,7 +117,7 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
 
     <div
       v-else
-      class="mt-4 space-y-3"
+      class="mt-4"
     >
       <div class="flex items-center justify-between gap-3 text-xs text-muted">
         <p>Drag the grip to reorder this category.</p>
@@ -135,7 +135,7 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
         ghost-class="team-ghost"
         chosen-class="team-chosen"
         :disabled="reorderIsPending"
-        class="space-y-3"
+        class="mt-3 divide-y divide-default border-t border-default"
         @start="handleDragStart"
         @change="handleDragChange"
       >
@@ -152,7 +152,7 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
 
       <div
         v-else
-        class="space-y-3"
+        class="mt-3 divide-y divide-default border-t border-default"
       >
         <AdminTeamCard
           v-for="element in items"
@@ -165,7 +165,7 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
         />
       </div>
     </div>
-  </UCard>
+  </section>
 </template>
 
 <style scoped>
@@ -175,6 +175,6 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
 
 :deep(.team-chosen) {
   transform: scale(1.01);
-  box-shadow: 0 12px 30px rgba(47, 33, 24, 0.12);
+  background-color: var(--ui-bg-elevated);
 }
 </style>

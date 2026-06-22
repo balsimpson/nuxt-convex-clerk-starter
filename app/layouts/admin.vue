@@ -16,7 +16,7 @@ const navItems = [
 <template>
   <UDashboardGroup
     storage-key="manasa-admin"
-    class="min-h-screen bg-[#f7efe2] text-[#2f2118]"
+    class="bg-[#fbf7ef] text-[#2f2118]"
   >
     <UDashboardSidebar
       collapsible
@@ -24,7 +24,7 @@ const navItems = [
       :default-size="18"
       :min-size="14"
       :max-size="22"
-      class="border-[#d9c9b7]/80 bg-[#f7efe2]"
+      class="border-[#d9c9b7]/80 bg-[#fbf7ef]"
       :ui="{
         header: 'border-b border-[#d9c9b7]/80 p-4',
         body: 'gap-4 p-3',
@@ -52,7 +52,7 @@ const navItems = [
             <p class="font-serif text-lg leading-none text-[#2f2118]">
               Manasa
             </p>
-            <p class="mt-1 truncate text-xs text-[#756453]">
+            <p class="mt-1 truncate text-xs text-[#4f4134]">
               Admin
             </p>
           </div>
@@ -82,24 +82,29 @@ const navItems = [
       </template>
     </UDashboardSidebar>
 
-    <UDashboardPanel class="min-w-0">
-      <UDashboardNavbar
-        title="Admin"
-        class="border-[#d9c9b7]/80 bg-[#f7efe2]/92 backdrop-blur-xl lg:hidden"
-      >
-        <template #right>
-          <UBadge
-            color="neutral"
-            variant="soft"
-          >
-            CMS
-          </UBadge>
-        </template>
-      </UDashboardNavbar>
+    <UDashboardPanel
+      class="min-w-0 bg-[#fbf7ef]"
+      :ui="{ body: 'min-w-0 bg-[#fbf7ef] p-0 sm:p-0' }"
+    >
+      <template #header>
+        <UDashboardNavbar
+          title="Admin"
+          class="border-[#d9c9b7]/80 bg-[#fbf7ef]/92 backdrop-blur-xl lg:hidden"
+        >
+          <template #right>
+            <UBadge
+              color="neutral"
+              variant="soft"
+            >
+              CMS
+            </UBadge>
+          </template>
+        </UDashboardNavbar>
+      </template>
 
-      <main class="min-w-0">
+      <template #body>
         <slot />
-      </main>
+      </template>
     </UDashboardPanel>
   </UDashboardGroup>
 </template>

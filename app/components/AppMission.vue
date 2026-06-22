@@ -3,7 +3,7 @@
     <div class="mx-auto max-w-7xl">
       <Motion
         as="p"
-        class="mb-5 text-xs font-semibold uppercase text-[#7a4f36]"
+        class="mb-5 text-xs font-semibold uppercase text-[#5f3724]"
         :initial="revealInitial"
         :while-in-view="revealVisible"
         :in-view-options="viewOnce"
@@ -27,7 +27,7 @@
 
           <Motion
             as="p"
-            class="mt-6 text-base leading-8 text-[#665646] sm:text-lg"
+            class="mt-6 text-base leading-8 text-[#4f4134] sm:text-lg"
             :initial="revealInitial"
             :while-in-view="revealVisible"
             :in-view-options="viewOnce"
@@ -44,7 +44,7 @@
             :in-view-options="viewOnce"
             :transition="revealTransition(0.24)"
           >
-            <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+            <p class="text-xs font-semibold uppercase text-[#5f3724]">
               Mission Statement
             </p>
             <p class="mt-3 font-serif text-2xl leading-9 text-[#3a2718] sm:text-3xl">
@@ -63,14 +63,14 @@
             :transition="revealTransition(0.2)"
           >
             <div>
-              <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+              <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 Key Focus Areas
               </p>
-              <p class="mt-2 max-w-xl text-sm leading-6 text-[#665646]">
+              <p class="mt-2 max-w-xl text-sm leading-6 text-[#4f4134]">
                 A practical ecosystem of legal access, education, and livelihoods.
               </p>
             </div>
-            <div class="hidden text-xs font-semibold uppercase text-[#8b6244] sm:block">
+            <div class="hidden text-xs font-semibold uppercase text-[#5f3724] sm:block">
               8 programs
             </div>
           </Motion>
@@ -87,12 +87,12 @@
               :transition="revealTransition(0.2 + index * 0.045)"
             >
               <div class="flex items-start gap-3">
-                <span class="mt-0.5 w-8 shrink-0 font-serif text-2xl leading-none text-[#a47553]">{{ index + 1 }}</span>
+                <span class="mt-0.5 w-8 shrink-0 font-serif text-2xl leading-none text-[#7a4f36]">{{ index + 1 }}</span>
                 <div>
                   <h3 class="text-sm font-semibold leading-6 text-[#2f2118] sm:text-base">
                     {{ item.title }}
                   </h3>
-                  <p class="mt-1 text-sm leading-6 text-[#665646]">
+                  <p class="mt-1 text-sm leading-6 text-[#4f4134]">
                     {{ item.description }}
                   </p>
                 </div>

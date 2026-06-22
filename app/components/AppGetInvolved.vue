@@ -3,7 +3,7 @@
     <div class="mx-auto max-w-7xl">
       <Motion
         as="p"
-        class="mb-5 text-xs font-semibold uppercase text-[#7a4f36]"
+        class="mb-5 text-xs font-semibold uppercase text-[#5f3724]"
         :initial="revealInitial"
         :while-in-view="revealVisible"
         :in-view-options="viewOnce"
@@ -27,7 +27,7 @@
             alt="Volunteers and community members working together"
           >
 
-          <figcaption class="absolute inset-x-2 bottom-2 bg-[#2f2118]/86 px-5 py-5 text-[#f7efe2] backdrop-blur-sm">
+          <figcaption class="absolute inset-x-2 bottom-2 bg-[#2f2118]/86 px-5 py-5 text-[#fbf7ef] backdrop-blur-sm">
             <p class="text-xs font-semibold uppercase text-[#e8d2bc]">
               Collective action
             </p>
@@ -51,7 +51,7 @@
 
           <Motion
             as="p"
-            class="mt-6 text-base leading-8 text-[#665646] sm:text-lg"
+            class="mt-6 text-base leading-8 text-[#4f4134] sm:text-lg"
             :initial="revealInitial"
             :while-in-view="revealVisible"
             :in-view-options="viewOnce"
@@ -74,7 +74,7 @@
               <h3 class="text-base font-semibold text-[#2f2118] sm:text-lg">
                 {{ item.title }}
               </h3>
-              <p class="max-w-2xl text-sm leading-7 text-[#665646] sm:text-base">
+              <p class="max-w-2xl text-sm leading-7 text-[#4f4134] sm:text-base">
                 {{ item.description }}
               </p>
             </Motion>
@@ -89,7 +89,7 @@
               :in-view-options="viewOnce"
               :transition="revealTransition(0.36)"
             >
-              <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+              <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 Donate with transparency
               </p>
               <p class="mt-2 text-sm leading-7 text-[#4f4134] sm:text-base">
@@ -109,7 +109,7 @@
                 color="neutral"
                 variant="solid"
                 trailing-icon="i-lucide-arrow-up-right"
-                class="rounded-none border border-[#2f2118] bg-[#2f2118] px-5 py-3 text-sm font-medium text-[#f7efe2] hover:bg-[#4b3324]"
+                class="rounded-none border border-[#2f2118] bg-[#2f2118] px-5 py-3 text-sm font-medium text-[#fbf7ef] hover:bg-[#4b3324]"
               >
                 Donate
               </UButton>

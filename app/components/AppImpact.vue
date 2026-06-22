@@ -3,7 +3,7 @@
     <div class="mx-auto max-w-7xl">
       <Motion
         as="p"
-        class="mb-5 text-xs font-semibold uppercase text-[#7a4f36]"
+        class="mb-5 text-xs font-semibold uppercase text-[#5f3724]"
         :initial="revealInitial"
         :while-in-view="revealVisible"
         :in-view-options="viewOnce"
@@ -27,7 +27,7 @@
 
           <Motion
             as="p"
-            class="mt-6 text-base leading-8 text-[#665646] sm:text-lg"
+            class="mt-6 text-base leading-8 text-[#4f4134] sm:text-lg"
             :initial="revealInitial"
             :while-in-view="revealVisible"
             :in-view-options="viewOnce"
@@ -51,7 +51,7 @@
             <p class="whitespace-nowrap font-serif text-3xl leading-none text-[#2f2118] sm:text-4xl">
               {{ stat.value }}
             </p>
-            <h3 class="max-w-[20ch] text-sm font-medium leading-6 text-[#5d4a3a] sm:mt-3 sm:text-base">
+            <h3 class="max-w-[20ch] text-sm font-medium leading-6 text-[#46382c] sm:mt-3 sm:text-base">
               {{ stat.label }}
             </h3>
           </Motion>

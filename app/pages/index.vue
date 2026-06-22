@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#f7efe2] text-[#2f2118]">
+  <div class="min-h-screen bg-[#fbf7ef] text-[#2f2118]">
     <main class="relative overflow-hidden">
       <AppHero @open-volunteer-modal="volunteerOpen = true" />
       <AppMission />
@@ -11,15 +11,15 @@
     <UModal
       v-model:open="volunteerOpen"
       :ui="{
-        content: 'bg-[#f7efe2] text-[#2f2118] ring-1 ring-[#d0bda8]',
-        header: 'border-b border-[#d9c9b7] bg-[#f7efe2] px-6 py-5 sm:px-8',
-        body: 'bg-[#f7efe2] px-6 py-6 sm:px-8',
-        footer: 'border-t border-[#d9c9b7] bg-[#f7efe2] px-6 py-5 sm:px-8'
+        content: 'bg-[#fbf7ef] text-[#2f2118] ring-1 ring-[#d0bda8]',
+        header: 'border-b border-[#d9c9b7] bg-[#fbf7ef] px-6 py-5 sm:px-8',
+        body: 'bg-[#fbf7ef] px-6 py-6 sm:px-8',
+        footer: 'border-t border-[#d9c9b7] bg-[#fbf7ef] px-6 py-5 sm:px-8'
       }"
     >
       <template #header>
         <div class="flex items-start gap-4">
-          <div class="mt-1 flex h-11 w-11 shrink-0 items-center justify-center border border-[#d0bda8] text-[#7a4f36]">
+          <div class="mt-1 flex h-11 w-11 shrink-0 items-center justify-center border border-[#d0bda8] text-[#5f3724]">
             <UIcon
               name="i-lucide-hand-heart"
               class="h-5 w-5"
@@ -27,13 +27,13 @@
           </div>
 
           <div class="min-w-0">
-            <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+            <p class="text-xs font-semibold uppercase text-[#5f3724]">
               Volunteer interest
             </p>
             <h2 class="mt-1 font-serif text-2xl leading-tight text-[#2f2118] sm:text-3xl">
               Join the work in a way that fits you.
             </h2>
-            <p class="mt-2 max-w-xl text-sm leading-6 text-[#6e5b4b]">
+            <p class="mt-2 max-w-xl text-sm leading-6 text-[#4f4134]">
               Share a few details and we'll follow up about volunteering, partnerships, or internships.
             </p>
           </div>
@@ -126,7 +126,7 @@
             color="neutral"
             variant="solid"
             trailing-icon="i-lucide-send"
-            class="rounded-none border border-[#2f2118] bg-[#2f2118] px-5 py-3 text-sm font-medium text-[#f7efe2] hover:bg-[#4b3324]"
+            class="rounded-none border border-[#2f2118] bg-[#2f2118] px-5 py-3 text-sm font-medium text-[#fbf7ef] hover:bg-[#4b3324]"
           >
             Submit
           </UButton>

@@ -25,6 +25,18 @@
   --font-sans: 'Public Sans', sans-serif;
   --font-serif: 'Arvo', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
+  --color-manasa-50: #fff7ed;
+  --color-manasa-100: #fde8d4;
+  --color-manasa-200: #f8c9a5;
+  --color-manasa-300: #eda571;
+  --color-manasa-400: #cf7341;
+  --color-manasa-500: #7f3718;
+  --color-manasa-600: #703016;
+  --color-manasa-700: #5c2712;
+  --color-manasa-800: #4c2110;
+  --color-manasa-900: #3f1d0f;
+  --color-manasa-950: #241008;
+
   --color-green-50: #EFFDF5;
   --color-green-100: #D9FBE8;
   --color-green-200: #B3F5D1;
@@ -38,12 +50,20 @@
   --color-green-950: #052E16;
 }
 
+:root {
+  --ui-text-dimmed: #5f4b3b;
+  --ui-text-muted: #4f4134;
+  --ui-text-toned: #3a2718;
+  --ui-text: #2f2118;
+  --ui-text-highlighted: #241008;
+}
+
 html {
-  background: #f7efe2;
+  background: #fbf7ef;
 }
 
 body {
-  background: #f7efe2;
+  background: #fbf7ef;
   color: #2f2118;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

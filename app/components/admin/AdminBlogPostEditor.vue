@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import type { EditorToolbarItem } from '@nuxt/ui'
+import type { EditorCustomHandlers, EditorToolbarItem } from '@nuxt/ui'
+import type { Editor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
+import { Youtube } from '@tiptap/extension-youtube'
+import { ImageUpload } from '~/utils/EditorImageUploadExtension'
 import { markRaw } from 'vue'
 import { useConvexClient } from 'convex-vue'
 
@@ -47,31 +50,58 @@ const authorUid = ref('')
 const isSaving = ref(false)
 const errorMessage = ref('')
 const isDetailsOpen = ref(false)
+const titleTextarea = ref<HTMLTextAreaElement | null>(null)
 
 const isEditMode = computed(() => props.mode === 'edit')
 const saveLabel = computed(() => isEditMode.value ? 'Save changes' : 'Create post')
+const publicPostUrl = computed(() => isEditMode.value && props.post?.slug ? `/blog/${props.post.slug}` : '')
+const editorColumnClass = 'w-full px-5 sm:px-8 lg:px-10'
 
 const extensions = [
+  markRaw(ImageUpload),
+  markRaw(Youtube.configure({ inline: false, controls: true })),
   markRaw(Placeholder.configure({
-    placeholder: 'Start writing the blog post...'
+    placeholder: 'Write the blog post.'
   }))
 ]
+
+const customHandlers = {
+  imageUpload: {
+    canExecute: (editor: Editor) => editor.can().insertContent({ type: 'imageUpload' }),
+    execute: (editor: Editor) => editor.chain().focus().insertContent({ type: 'imageUpload' }),
+    isActive: (editor: Editor) => editor.isActive('imageUpload'),
+    isDisabled: undefined
+  },
+  youtubeEmbed: {
+    canExecute: () => true,
+    execute: (editor: Editor) => {
+      const url = prompt('Enter YouTube video URL:')
+      if (url) editor.chain().focus().setYoutubeVideo({ src: url }).run()
+    },
+    isActive: (editor: Editor) => editor.isActive('youtube'),
+    isDisabled: undefined
+  }
+} satisfies EditorCustomHandlers
 
 const toolbarItems: EditorToolbarItem[] = [
   { kind: 'mark', mark: 'bold', icon: 'i-lucide-bold' },
   { kind: 'mark', mark: 'italic', icon: 'i-lucide-italic' },
   { kind: 'heading', level: 1, icon: 'i-lucide-heading-1' },
   { kind: 'heading', level: 2, icon: 'i-lucide-heading-2' },
+  { kind: 'textAlign', align: 'left', icon: 'i-lucide-align-left' },
+  { kind: 'textAlign', align: 'center', icon: 'i-lucide-align-center' },
   { kind: 'bulletList', icon: 'i-lucide-list' },
   { kind: 'orderedList', icon: 'i-lucide-list-ordered' },
   { kind: 'blockquote', icon: 'i-lucide-quote' },
   { kind: 'link', icon: 'i-lucide-link' },
-  { kind: 'horizontalRule', label: '', icon: 'i-lucide-separator-horizontal' }
+  { kind: 'horizontalRule', label: '', icon: 'i-lucide-separator-horizontal' },
+  { kind: 'imageUpload', icon: 'i-lucide-image', label: 'Add image', variant: 'soft' },
+  { kind: 'youtubeEmbed', icon: 'i-lucide-youtube', label: 'Embed video', variant: 'soft' }
 ]
 
 const editorUi = {
   base: 'flex-1 min-w-0 w-full max-w-none focus:outline-none',
-  content: 'mx-auto w-full max-w-3xl break-words px-4 pb-24 pt-8 prose prose-primary dark:prose-invert sm:px-6 lg:px-8'
+  content: `${editorColumnClass} max-w-none break-words pb-24 pt-8 prose prose-lg prose-primary dark:prose-invert`
 }
 
 function normalizeSlug(value: string) {
@@ -261,6 +291,14 @@ function useTitleForSlug() {
   slug.value = normalizeSlug(title.value)
 }
 
+function resizeTitleTextarea() {
+  const element = titleTextarea.value
+  if (!element) return
+
+  element.style.height = 'auto'
+  element.style.height = `${element.scrollHeight}px`
+}
+
 async function savePost() {
   if (isSaving.value) {
     return
@@ -299,12 +337,18 @@ watch(title, (newTitle) => {
   if (!slug.value && newTitle) {
     slug.value = normalizeSlug(newTitle)
   }
+
+  nextTick(resizeTitleTextarea)
+})
+
+onMounted(() => {
+  nextTick(resizeTitleTextarea)
 })
 </script>
 
 <template>
   <form
-    class="space-y-6"
+    class="min-w-0"
     @submit.prevent="savePost"
   >
     <UAlert
@@ -312,30 +356,48 @@ watch(title, (newTitle) => {
       color="error"
       variant="soft"
       :title="errorMessage"
+      class="mx-auto mb-4 w-full max-w-3xl"
     />
 
-    <div class="flex min-h-[calc(100vh-11rem)] w-full min-w-0 flex-col overflow-hidden border border-muted/40 bg-default">
+    <div class="flex min-h-[calc(100vh-5rem)] w-full min-w-0 flex-col overflow-hidden border-y border-[#d9c9b7]/80 bg-[#fffaf2]">
       <UEditor
         v-slot="{ editor }"
         v-model="content"
         :extensions="extensions"
+        :handlers="customHandlers"
         content-type="markdown"
         class="flex min-w-0 flex-1 flex-col"
         :ui="editorUi"
       >
-        <div class="sticky top-0 z-20 min-w-0 border-b border-muted bg-default/90 backdrop-blur">
-          <div class="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
+        <div class="sticky top-0 z-30 min-w-0 border-b border-[#d9c9b7]/80 bg-[#fbf7ef]/95 backdrop-blur">
+          <div
+            :class="editorColumnClass"
+            class="flex flex-col gap-3 py-3"
+          >
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <UTextarea
-                v-model="title"
-                variant="none"
-                class="min-w-0 flex-1 text-3xl font-bold text-highlighted sm:text-4xl"
-                :rows="1"
-                autoresize
-                :ui="{ base: 'p-0 min-h-0 resize-none' }"
-              />
+              <UButton
+                to="/admin"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                icon="i-lucide-arrow-left"
+                class="w-fit -ml-2"
+              >
+                Posts
+              </UButton>
 
               <div class="flex shrink-0 flex-wrap items-center gap-2">
+                <UButton
+                  v-if="publicPostUrl"
+                  :to="publicPostUrl"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-arrow-up-right"
+                >
+                  Preview
+                </UButton>
+
                 <UButton
                   color="neutral"
                   variant="soft"
@@ -359,21 +421,53 @@ watch(title, (newTitle) => {
             </div>
           </div>
 
-          <div class="border-t border-muted bg-default px-3 py-2">
-            <UEditorToolbar
-              :editor="editor"
-              :items="toolbarItems"
-              class="mx-auto flex-wrap justify-center overflow-x-auto"
-              :ui="{ group: 'flex-wrap' }"
-            />
+          <div class="border-t border-[#d9c9b7]/70 bg-[#fffaf2]">
+            <div
+              :class="editorColumnClass"
+              class="py-2"
+            >
+              <UEditorToolbar
+                :editor="editor"
+                :items="toolbarItems"
+                class="-mx-1 flex-wrap justify-start overflow-x-auto"
+                :ui="{ group: 'flex-wrap' }"
+              />
+            </div>
           </div>
+        </div>
+
+        <div
+          :class="editorColumnClass"
+          class="pt-12 sm:pt-16"
+        >
+          <label
+            for="blog-post-title"
+            class="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.22em] text-[#8d7159]"
+          >
+            <UIcon
+              name="i-lucide-pencil"
+              class="h-3.5 w-3.5"
+            />
+            Post title
+          </label>
+
+          <textarea
+            id="blog-post-title"
+            ref="titleTextarea"
+            v-model="title"
+            placeholder="Title"
+            aria-label="Post title"
+            rows="1"
+            class="block min-h-0 w-full resize-none overflow-hidden rounded-none border-0 border-b border-dashed border-[#c8b29d] bg-transparent p-0 pb-4 font-serif text-[2.75rem] font-semibold leading-[1.12] tracking-normal text-[#2f2118] shadow-none outline-none placeholder:text-[#9a8068]/70 focus:border-[#6f4a32] focus:ring-0 sm:text-[3.5rem] lg:text-[4.25rem]"
+            @input="resizeTitleTextarea"
+          />
         </div>
       </UEditor>
     </div>
 
     <USlideover
       v-model:open="isDetailsOpen"
-      title="Post Settings"
+      title="Post settings"
       description="Manage post metadata."
     >
       <template #body>

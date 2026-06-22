@@ -24,7 +24,7 @@ function heroTextTransition(delay = 0) {
         <div class="max-w-3xl">
           <Motion
             as="p"
-            class="mb-5 text-xs font-semibold uppercase text-[#7a4f36]"
+            class="mb-5 text-xs font-semibold uppercase text-[#5f3724]"
             :initial="heroTextInitial"
             :animate="heroTextVisible"
             :transition="heroTextTransition(0.04)"
@@ -44,7 +44,7 @@ function heroTextTransition(delay = 0) {
 
           <Motion
             as="p"
-            class="mt-7 max-w-2xl text-base leading-8 text-[#665646] sm:text-lg"
+            class="mt-7 max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg"
             :initial="heroTextInitial"
             :animate="heroTextVisible"
             :transition="heroTextTransition(0.28)"
@@ -64,7 +64,7 @@ function heroTextTransition(delay = 0) {
               color="neutral"
               variant="solid"
               trailing-icon="i-lucide-arrow-up-right"
-              class="rounded-none border border-[#2f2118] bg-[#2f2118] px-6 py-3 text-sm font-medium text-[#f7efe2] hover:bg-[#4b3324]"
+              class="rounded-none border border-[#2f2118] bg-[#2f2118] px-6 py-3 text-sm font-medium text-[#fbf7ef] hover:bg-[#4b3324]"
             >
               Donate
             </UButton>
@@ -107,7 +107,7 @@ function heroTextTransition(delay = 0) {
             :in-view-options="viewOnce"
             :transition="heroTextTransition(0)"
           >
-            <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+            <p class="text-xs font-semibold uppercase text-[#5f3724]">
               About Manasa
             </p>
             <p class="mt-4 font-serif text-3xl leading-tight text-[#2f2118] sm:text-4xl">

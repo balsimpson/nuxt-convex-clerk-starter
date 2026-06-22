@@ -85,9 +85,9 @@ async function handleDelete(item: TeamListItem) {
         ]"
       />
 
-      <div class="space-y-6 py-8">
-        <UCard>
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="py-8">
+        <section class="border-y border-default">
+          <div class="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
             <div class="space-y-2">
               <p class="text-xs uppercase tracking-[0.28em] text-muted">
                 Team roster
@@ -107,21 +107,21 @@ async function handleDelete(item: TeamListItem) {
               @click="openCreate()"
             />
           </div>
-        </UCard>
 
-        <div class="space-y-6">
-          <AdminTeamCategoryTable
-            v-for="section in teamCategorySections"
-            :key="section.category"
-            :category="section.category"
-            :title="section.title"
-            :create-label="section.createLabel"
-            :deleting-id="deletingId"
-            @edit="openEdit"
-            @delete="handleDelete"
-            @create="openCreate(section.category)"
-          />
-        </div>
+          <div class="divide-y divide-default border-t border-default">
+            <AdminTeamCategoryTable
+              v-for="section in teamCategorySections"
+              :key="section.category"
+              :category="section.category"
+              :title="section.title"
+              :create-label="section.createLabel"
+              :deleting-id="deletingId"
+              @edit="openEdit"
+              @delete="handleDelete"
+              @create="openCreate(section.category)"
+            />
+          </div>
+        </section>
       </div>
     </div>
 

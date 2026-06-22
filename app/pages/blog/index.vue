@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-[#f7efe2] text-[#2f2118]">
+  <div class="min-h-screen bg-[#fbf7ef] text-[#2f2118]">
     <main class="relative overflow-hidden px-4 pb-[4.5rem] pt-10 sm:px-6 lg:px-8 lg:pb-24 lg:pt-14">
       <div class="mx-auto max-w-7xl">
         <section class="grid gap-8 border-b border-[#d9c9b7] pb-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:gap-16 lg:pb-12">
           <div class="max-w-3xl">
             <Motion
               as="p"
-              class="mb-5 text-xs font-semibold uppercase text-[#7a4f36]"
+              class="mb-5 text-xs font-semibold uppercase text-[#5f3724]"
               :initial="revealInitial"
               :animate="revealVisible"
               :transition="revealTransition(0.04)"
@@ -26,7 +26,7 @@
 
             <Motion
               as="p"
-              class="mt-7 max-w-2xl text-base leading-8 text-[#665646] sm:text-lg"
+              class="mt-7 max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg"
               :initial="revealInitial"
               :animate="revealVisible"
               :transition="revealTransition(0.28)"
@@ -82,7 +82,7 @@
                 class="aspect-[4/3] w-full object-cover object-center transition duration-700 group-hover:scale-[1.01]"
               >
 
-              <p class="mt-5 text-xs font-semibold uppercase text-[#7a4f36]">
+              <p class="mt-5 text-xs font-semibold uppercase text-[#5f3724]">
                 {{ formatPublishedAt(post.published_at) }}
               </p>
 
@@ -90,7 +90,7 @@
                 {{ post.title }}
               </h2>
 
-              <p class="mt-3 line-clamp-3 text-sm leading-7 text-[#665646] sm:text-base">
+              <p class="mt-3 line-clamp-3 text-sm leading-7 text-[#4f4134] sm:text-base">
                 {{ post.description }}
               </p>
 
@@ -101,7 +101,7 @@
                 <span
                   v-for="tag in post.tags.slice(0, 3)"
                   :key="tag"
-                  class="text-xs font-semibold uppercase text-[#7a4f36]"
+                  class="text-xs font-semibold uppercase text-[#5f3724]"
                 >
                   {{ tag }}
                 </span>
@@ -110,7 +110,7 @@
           </Motion>
         </section>
 
-        <div class="flex min-h-24 items-center justify-center border-b border-[#d9c9b7] px-6 text-sm text-[#665646]">
+        <div class="flex min-h-24 items-center justify-center border-b border-[#d9c9b7] px-6 text-sm text-[#4f4134]">
           <span v-if="isLoadingInitial">
             Loading posts...
           </span>

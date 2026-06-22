@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "NODE_OPTIONS=--max-http-header-size=65536 nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
@@ -17,6 +17,7 @@
     "@nuxt/ui": "^4.1.0",
     "@tiptap/extension-image": "^3.26.1",
     "@tiptap/extension-placeholder": "^3.26.1",
+    "@tiptap/extension-youtube": "^3.27.0",
     "@tiptap/starter-kit": "^3.26.1",
     "@tiptap/vue-3": "^3.26.1",
     "convex": "^1.31.7",

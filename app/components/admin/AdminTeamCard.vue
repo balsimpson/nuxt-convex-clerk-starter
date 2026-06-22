@@ -17,7 +17,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="team-card group flex items-start gap-4 rounded-2xl border border-default/60 bg-background p-4 hover:border-default/80 hover:bg-elevated/30">
+  <div class="team-card group flex items-start gap-4 py-4 transition-colors hover:bg-elevated/30">
     <button
       v-if="props.showHandle"
       type="button"
@@ -84,11 +84,3 @@ const emit = defineEmits<{
     </div>
   </div>
 </template>
-
-<style scoped>
-.team-card {
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease;
-}
-</style>

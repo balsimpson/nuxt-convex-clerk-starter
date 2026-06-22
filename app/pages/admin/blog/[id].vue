@@ -85,30 +85,48 @@ onMounted(async () => {
 
 <template>
   <UPage>
-    <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <UPageHeader
-        headline="Admin"
-        title="Edit blog post"
-        :links="headerLinks"
-      />
-
-      <div class="py-8">
-        <UAlert
-          v-if="errorMessage"
-          color="error"
-          variant="soft"
-          :title="errorMessage"
+    <div class="w-full">
+      <div
+        v-if="errorMessage || isLoading"
+        class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8"
+      >
+        <UPageHeader
+          headline="Admin"
+          title="Edit blog post"
+          :links="headerLinks"
         />
 
-        <div
-          v-else-if="isLoading"
-          class="flex min-h-48 items-center justify-center border-y border-default text-sm text-muted"
-        >
-          Loading blog post...
+        <div class="py-8">
+          <UAlert
+            v-if="errorMessage"
+            color="error"
+            variant="soft"
+            :title="errorMessage"
+          />
+
+          <div
+            v-else
+            class="flex min-h-48 items-center justify-center border-y border-default text-sm text-muted"
+          >
+            Loading blog post...
+          </div>
         </div>
+      </div>
+
+      <div
+        v-else
+        class="py-4 sm:py-6"
+      >
+        <UAlert
+          v-if="!post"
+          color="error"
+          variant="soft"
+          title="This blog post could not be found."
+          class="mx-auto w-full max-w-6xl"
+        />
 
         <AdminBlogPostEditor
-          v-else-if="post"
+          v-else
           mode="edit"
           :post="post"
         />

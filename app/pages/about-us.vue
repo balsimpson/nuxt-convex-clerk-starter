@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen bg-[#f7efe2] text-[#2f2118]">
+  <div class="min-h-screen bg-[#fbf7ef] text-[#2f2118]">
     <main class="relative overflow-hidden px-4 pb-[4.5rem] pt-10 sm:px-6 lg:px-8 lg:pb-24 lg:pt-14">
       <div class="mx-auto max-w-7xl">
         <UBreadcrumb
           :items="breadcrumbItems"
           separator-icon="i-lucide-chevron-right"
-          class="mb-8 text-[#665646]"
+          class="mb-8 text-[#4f4134]"
         />
 
         <section class="border-b border-[#d9c9b7] pb-12 lg:pb-16">
@@ -13,7 +13,7 @@
             <div class="max-w-2xl">
               <Motion
                 as="p"
-                class="mb-5 text-xs font-semibold uppercase text-[#7a4f36]"
+                class="mb-5 text-xs font-semibold uppercase text-[#5f3724]"
                 :initial="revealInitial"
                 :animate="revealVisible"
                 :transition="revealTransition(0.04)"
@@ -33,7 +33,7 @@
 
               <Motion
                 as="p"
-                class="mt-7 max-w-2xl text-base leading-8 text-[#665646] sm:text-lg"
+                class="mt-7 max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg"
                 :initial="revealInitial"
                 :animate="revealVisible"
                 :transition="revealTransition(0.28)"
@@ -43,7 +43,7 @@
 
               <Motion
                 as="p"
-                class="mt-6 max-w-2xl text-base leading-8 text-[#665646] sm:text-lg"
+                class="mt-6 max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg"
                 :initial="revealInitial"
                 :animate="revealVisible"
                 :transition="revealTransition(0.4)"
@@ -78,7 +78,7 @@
               :in-view-options="viewOnce"
               :transition="revealTransition()"
             >
-              <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+              <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 The Name
               </p>
               <h2 class="mt-4 font-serif text-3xl font-normal leading-tight text-[#2f2118] sm:text-4xl">
@@ -115,7 +115,7 @@
             <div class="max-w-2xl">
               <Motion
                 as="p"
-                class="mb-5 text-xs font-semibold uppercase text-[#7a4f36]"
+                class="mb-5 text-xs font-semibold uppercase text-[#5f3724]"
                 :initial="revealInitial"
                 :while-in-view="revealVisible"
                 :in-view-options="viewOnce"
@@ -137,7 +137,7 @@
 
               <Motion
                 as="p"
-                class="mt-6 text-base leading-8 text-[#665646] sm:text-lg"
+                class="mt-6 text-base leading-8 text-[#4f4134] sm:text-lg"
                 :initial="revealInitial"
                 :while-in-view="revealVisible"
                 :in-view-options="viewOnce"
@@ -170,18 +170,18 @@
                   <h3 class="font-serif text-2xl leading-tight text-[#2f2118]">
                     {{ member.name }}
                   </h3>
-                  <p class="mt-1 text-sm leading-6 text-[#665646] sm:text-base">
+                  <p class="mt-1 text-sm leading-6 text-[#4f4134] sm:text-base">
                     {{ member.designation }}
                   </p>
                   <details class="group mt-4">
-                    <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-[#7a4f36] outline-none [&::-webkit-details-marker]:hidden">
+                    <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-[#5f3724] outline-none [&::-webkit-details-marker]:hidden">
                       <span>Show more</span>
                       <UIcon
                         name="i-lucide-chevron-down"
                         class="h-4 w-4 transition-transform duration-200 group-open:rotate-180"
                       />
                     </summary>
-                    <p class="mt-3 text-sm leading-7 text-[#665646]">
+                    <p class="mt-3 text-sm leading-7 text-[#4f4134]">
                       {{ member.bio }}
                     </p>
                   </details>
@@ -194,14 +194,14 @@
         <section class="pb-12 lg:pb-16">
           <div class="mb-8 grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14">
             <div>
-              <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+              <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 Our Team
               </p>
               <h2 class="mt-4 font-serif text-4xl font-normal leading-[1.02] text-[#2f2118] text-balance sm:text-5xl">
                 Board members guiding Manasa's mission.
               </h2>
             </div>
-            <p class="max-w-2xl text-base leading-8 text-[#665646] sm:text-lg lg:pt-8">
+            <p class="max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg lg:pt-8">
               Meet the board members supporting organizational direction, governance, and long-term public action.
             </p>
           </div>
@@ -234,7 +234,7 @@
 
           <div
             v-else-if="!boardMembers?.length"
-            class="border-y border-[#d9c9b7] py-5 text-sm text-[#665646]"
+            class="border-y border-[#d9c9b7] py-5 text-sm text-[#4f4134]"
           >
             No board members found.
           </div>
@@ -266,7 +266,7 @@
                 <h3 class="truncate font-serif text-xl leading-tight text-[#2f2118]">
                   {{ member.fullname }}
                 </h3>
-                <p class="mt-1 truncate text-sm leading-6 text-[#665646]">
+                <p class="mt-1 truncate text-sm leading-6 text-[#4f4134]">
                   {{ member.designation }}
                 </p>
               </div>
@@ -277,14 +277,14 @@
         <section class="pb-12 lg:pb-16">
           <div class="mb-8 grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14">
             <div>
-              <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+              <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 Staff
               </p>
               <h2 class="mt-4 font-serif text-4xl font-normal leading-[1.02] text-[#2f2118] text-balance sm:text-5xl">
                 The team carrying programs into daily work.
               </h2>
             </div>
-            <p class="max-w-2xl text-base leading-8 text-[#665646] sm:text-lg lg:pt-8">
+            <p class="max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg lg:pt-8">
               Meet the staff supporting Manasa's programs, partnerships, and day-to-day community work.
             </p>
           </div>
@@ -317,7 +317,7 @@
 
           <div
             v-else-if="!staffMembers?.length"
-            class="border-y border-[#d9c9b7] py-5 text-sm text-[#665646]"
+            class="border-y border-[#d9c9b7] py-5 text-sm text-[#4f4134]"
           >
             No staff members found.
           </div>
@@ -349,7 +349,7 @@
                 <h3 class="truncate font-serif text-xl leading-tight text-[#2f2118]">
                   {{ member.fullname }}
                 </h3>
-                <p class="mt-1 truncate text-sm leading-6 text-[#665646]">
+                <p class="mt-1 truncate text-sm leading-6 text-[#4f4134]">
                   {{ member.designation }}
                 </p>
               </div>
@@ -360,14 +360,14 @@
         <section class="pb-12 lg:pb-16">
           <div class="mb-8 grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14">
             <div>
-              <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+              <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 District Coordinators
               </p>
               <h2 class="mt-4 font-serif text-4xl font-normal leading-[1.02] text-[#2f2118] text-balance sm:text-5xl">
                 Local coordination across the regions Manasa serves.
               </h2>
             </div>
-            <p class="max-w-2xl text-base leading-8 text-[#665646] sm:text-lg lg:pt-8">
+            <p class="max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg lg:pt-8">
               Meet the district coordinators supporting Manasa's work across the regions it serves.
             </p>
           </div>
@@ -400,7 +400,7 @@
 
           <div
             v-else-if="!districtCoordinators?.length"
-            class="border-y border-[#d9c9b7] py-5 text-sm text-[#665646]"
+            class="border-y border-[#d9c9b7] py-5 text-sm text-[#4f4134]"
           >
             No district coordinators found.
           </div>
@@ -432,7 +432,7 @@
                 <h3 class="truncate font-serif text-xl leading-tight text-[#2f2118]">
                   {{ member.fullname }}
                 </h3>
-                <p class="mt-1 truncate text-sm leading-6 text-[#665646]">
+                <p class="mt-1 truncate text-sm leading-6 text-[#4f4134]">
                   {{ member.designation }}
                 </p>
               </div>
@@ -442,7 +442,7 @@
 
         <section>
           <div class="border-t border-[#d9c9b7] pt-10 lg:pt-14">
-            <p class="mb-5 text-xs font-semibold uppercase text-[#7a4f36]">
+            <p class="mb-5 text-xs font-semibold uppercase text-[#5f3724]">
               In the Community
             </p>
             <div class="grid gap-3 sm:grid-cols-2">

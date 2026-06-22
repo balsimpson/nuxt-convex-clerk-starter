@@ -205,17 +205,17 @@ watch(deleteModalOpen, (isOpen) => {
       />
 
       <div class="py-8">
-        <UCard>
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <section class="border-y border-default">
+          <div class="flex flex-col gap-4 py-6 sm:flex-row sm:items-start sm:justify-between">
             <div class="space-y-2">
               <p class="text-xs uppercase tracking-[0.28em] text-muted">
                 Blog posts
               </p>
               <h2 class="text-2xl font-semibold tracking-[-0.03em] text-highlighted">
-                Published posts
+                Blog archive
               </h2>
               <p class="max-w-2xl text-sm leading-6 text-muted">
-                Posts are loaded from the Convex posts table, including drafts.
+                Review published posts and drafts from one clean list.
               </p>
             </div>
 
@@ -234,14 +234,14 @@ watch(deleteModalOpen, (isOpen) => {
             color="error"
             variant="soft"
             :title="errorMessage"
-            class="mt-6"
+            class="mb-6"
           />
 
-          <div class="mt-6 divide-y divide-default border-y border-default">
+          <div class="divide-y divide-default border-t border-default">
             <div
               v-for="post in posts"
               :key="post._id"
-              class="group flex items-start gap-3 py-4 transition-colors hover:bg-elevated/45 sm:gap-5"
+              class="group flex items-start gap-3 py-5 transition-colors hover:bg-elevated/35 sm:gap-5"
             >
               <NuxtLink
                 :to="postEditorUrl(post._id)"
@@ -309,7 +309,7 @@ watch(deleteModalOpen, (isOpen) => {
             </div>
           </div>
 
-          <div class="flex min-h-20 items-center justify-center px-4 text-sm text-muted">
+          <div class="flex min-h-20 items-center justify-center border-t border-default px-4 text-sm text-muted">
             <span v-if="isLoadingInitial">
               Loading posts...
             </span>
@@ -331,7 +331,7 @@ watch(deleteModalOpen, (isOpen) => {
             ref="sentinel"
             class="h-1 w-full"
           />
-        </UCard>
+        </section>
       </div>
     </div>
 

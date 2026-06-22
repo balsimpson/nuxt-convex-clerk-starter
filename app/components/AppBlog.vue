@@ -6,7 +6,7 @@
     <div class="mx-auto max-w-7xl">
       <Motion
         as="p"
-        class="mb-5 text-xs font-semibold uppercase text-[#7a4f36]"
+        class="mb-5 text-xs font-semibold uppercase text-[#5f3724]"
         :initial="revealInitial"
         :while-in-view="revealVisible"
         :in-view-options="viewOnce"
@@ -30,7 +30,7 @@
 
           <Motion
             as="p"
-            class="mt-6 text-base leading-8 text-[#665646] sm:text-lg"
+            class="mt-6 text-base leading-8 text-[#4f4134] sm:text-lg"
             :initial="revealInitial"
             :while-in-view="revealVisible"
             :in-view-options="viewOnce"
@@ -61,7 +61,7 @@
 
         <Motion
           as="div"
-          class="hidden text-sm leading-7 text-[#665646] sm:text-base lg:block lg:max-w-xl"
+          class="hidden text-sm leading-7 text-[#4f4134] sm:text-base lg:block lg:max-w-xl"
           :initial="{ opacity: 0, y: 20 }"
           :while-in-view="{ opacity: 1, y: 0 }"
           :in-view-options="viewOnce"
@@ -91,7 +91,7 @@
               class="aspect-[4/3] w-full object-cover object-center transition duration-700 group-hover:scale-[1.01]"
             >
 
-            <p class="mt-5 text-xs font-semibold uppercase text-[#7a4f36]">
+            <p class="mt-5 text-xs font-semibold uppercase text-[#5f3724]">
               {{ formatPublishedAt(post.published_at) }}
             </p>
 

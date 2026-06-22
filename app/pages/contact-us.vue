@@ -1,17 +1,17 @@
 <template>
-  <div class="min-h-screen bg-[#f7efe2] text-[#2f2118]">
+  <div class="min-h-screen bg-[#fbf7ef] text-[#2f2118]">
     <main class="relative overflow-hidden px-4 pb-[4.5rem] pt-10 sm:px-6 lg:px-8 lg:pb-24 lg:pt-14">
       <div class="mx-auto max-w-7xl">
         <UBreadcrumb
           :items="breadcrumbItems"
           separator-icon="i-lucide-chevron-right"
-          class="mb-8 text-[#665646]"
+          class="mb-8 text-[#4f4134]"
         />
 
         <section class="border-b border-[#d9c9b7] pb-12 lg:pb-16">
           <div class="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end lg:gap-16">
             <div class="max-w-2xl">
-              <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+              <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 Contact Us
               </p>
 
@@ -22,13 +22,13 @@
                 </span>
               </h1>
 
-              <p class="mt-7 max-w-2xl text-base leading-8 text-[#665646] sm:text-lg">
+              <p class="mt-7 max-w-2xl text-base leading-8 text-[#4f4134] sm:text-lg">
                 Use the details below to reach our office, or send a message through the form and we will get back to you.
               </p>
             </div>
 
-            <div class="border-t border-[#d9c9b7] pt-6 text-sm leading-7 text-[#665646] lg:border-t-0 lg:pt-0 lg:pl-8">
-              <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+            <div class="border-t border-[#d9c9b7] pt-6 text-sm leading-7 text-[#4f4134] lg:border-t-0 lg:pt-0 lg:pl-8">
+              <p class="text-xs font-semibold uppercase text-[#5f3724]">
                 Quick Contact
               </p>
               <p class="mt-3 max-w-xl">
@@ -129,7 +129,7 @@
                     variant="solid"
                     :loading="isPending"
                     label="Submit message"
-                    class="rounded-none border border-[#2f2118] bg-[#2f2118] px-5 py-3 text-sm font-medium text-[#f7efe2] hover:bg-[#4b3324]"
+                    class="rounded-none border border-[#2f2118] bg-[#2f2118] px-5 py-3 text-sm font-medium text-[#fbf7ef] hover:bg-[#4b3324]"
                   />
                 </div>
               </form>
@@ -138,10 +138,10 @@
             <div class="border-t border-[#d9c9b7] pt-8 lg:border-t-0 lg:border-l lg:pl-8">
               <div class="space-y-6">
                 <div>
-                  <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+                  <p class="text-xs font-semibold uppercase text-[#5f3724]">
                     Address
                   </p>
-                  <p class="mt-3 text-sm leading-7 text-[#665646]">
+                  <p class="mt-3 text-sm leading-7 text-[#4f4134]">
                     1/F, 35 Anjanappa Complex Hennur Main Road,
                     <br>
                     Lingarajapuram
@@ -153,10 +153,10 @@
                 </div>
 
                 <div class="border-t border-[#d9c9b7] pt-6">
-                  <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+                  <p class="text-xs font-semibold uppercase text-[#5f3724]">
                     Phone
                   </p>
-                  <div class="mt-3 space-y-2 text-sm leading-7 text-[#665646]">
+                  <div class="mt-3 space-y-2 text-sm leading-7 text-[#4f4134]">
                     <a
                       href="tel:+918025473922"
                       class="block transition hover:text-[#8f6240]"
@@ -173,10 +173,10 @@
                 </div>
 
                 <div class="border-t border-[#d9c9b7] pt-6">
-                  <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+                  <p class="text-xs font-semibold uppercase text-[#5f3724]">
                     Email
                   </p>
-                  <div class="mt-3 space-y-2 text-sm leading-7 text-[#665646]">
+                  <div class="mt-3 space-y-2 text-sm leading-7 text-[#4f4134]">
                     <a
                       href="mailto:contact@sichrem.org"
                       class="block transition hover:text-[#8f6240]"
@@ -193,10 +193,10 @@
                 </div>
 
                 <div class="border-t border-[#d9c9b7] pt-6">
-                  <p class="text-xs font-semibold uppercase text-[#7a4f36]">
+                  <p class="text-xs font-semibold uppercase text-[#5f3724]">
                     Office Hours
                   </p>
-                  <div class="mt-3 space-y-3 text-sm leading-7 text-[#665646]">
+                  <div class="mt-3 space-y-3 text-sm leading-7 text-[#4f4134]">
                     <p>
                       Monday - Friday: 10.00am to 5.00pm
                     </p>

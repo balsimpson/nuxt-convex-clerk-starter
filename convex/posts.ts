@@ -103,6 +103,39 @@ export const getForAdmin = query({
   }
 })
 
+export const getById = query({
+  args: {
+    id: v.id('posts')
+  },
+  handler: async (ctx, args) => {
+    const post = await ctx.db.get(args.id)
+
+    if (!post) {
+      return null
+    }
+
+    return {
+      _id: post._id,
+      title: post.title,
+      description: post.description,
+      excerpt: post.description,
+      category: '',
+      image: post.image,
+      slug: post.slug,
+      status: post.status,
+      publishStatus: post.status,
+      contentType: post.status,
+      tags: post.tags,
+      published_at: post.published_at,
+      originalSource: '',
+      originalPublishedAt: post.published_at ? new Date(post.published_at as string).getTime() : null,
+      updatedAt: post.updated_at ?? post.last_updated ?? post._creationTime,
+      content: post.content,
+      author: post.author
+    }
+  }
+})
+
 export const list = query({
   args: {
     paginationOpts: paginationOptsValidator
@@ -209,6 +242,89 @@ export const update = mutation({
       updated_at: now,
       last_updated: now
     })
+  }
+})
+
+export const upsert = mutation({
+  args: {
+    id: v.optional(v.id('posts')),
+    title: v.optional(v.string()),
+    slug: v.string(),
+    content: v.optional(v.any()),
+    contentType: v.optional(v.string()),
+    publishStatus: v.optional(v.string()),
+    excerpt: v.optional(v.string()),
+    category: v.optional(v.string()),
+    image: v.optional(v.string()),
+    video: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    originalSource: v.optional(v.string()),
+    originalPublishedAt: v.optional(v.number())
+  },
+  handler: async (ctx, args) => {
+    const status = args.publishStatus ?? args.contentType ?? 'draft'
+    const title = args.title?.trim() || 'Untitled'
+    const slug = args.slug.trim() || 'untitled'
+    const description = args.excerpt?.trim() || title
+    const now = Date.now()
+    const publishedAt = args.originalPublishedAt ? new Date(args.originalPublishedAt).toISOString() : new Date(now).toISOString()
+
+    const existingPosts = await ctx.db
+      .query('posts')
+      .withIndex('by_slug', q => q.eq('slug', slug))
+      .take(2)
+
+    if (existingPosts.some(post => post._id !== args.id)) {
+      throw new Error('A blog post with this slug already exists.')
+    }
+
+    const post = {
+      title,
+      description,
+      image: args.image ?? '',
+      slug,
+      status,
+      content: args.content ?? '',
+      tags: args.tags ?? [],
+      published_at: publishedAt,
+      updated_at: now,
+      last_updated: now,
+      author: {
+        name: 'Manasa',
+        email: '',
+        photo: '',
+        uid: ''
+      }
+    }
+
+    if (args.id) {
+      const existingPost = await ctx.db.get(args.id)
+
+      if (!existingPost) {
+        throw new Error('This blog post could not be found.')
+      }
+
+      await ctx.db.patch(args.id, {
+        ...post,
+        author: existingPost.author
+      })
+
+      return {
+        _id: args.id,
+        slug,
+        contentType: status,
+        updatedAt: now
+      }
+    }
+
+    const id = await ctx.db.insert('posts', post)
+
+    return {
+      _id: id,
+      slug,
+      contentType: status,
+      updatedAt: now
+    }
   }
 })
 

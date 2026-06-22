@@ -8,6 +8,7 @@ import { ImageUpload } from '~/utils/EditorImageUploadExtension'
 import { Youtube } from '@tiptap/extension-youtube'
 import Placeholder from '@tiptap/extension-placeholder'
 import type { PropType } from 'vue'
+import { useConvexClient, useConvexMutation } from 'convex-vue'
 
 type PostStatus = 'draft' | 'published'
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'

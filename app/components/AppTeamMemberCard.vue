@@ -18,7 +18,7 @@ defineProps<{
       >
     </div>
 
-    <div class="mt-4 inline-flex rounded-full border border-[#d6c3ae] bg-[#fff7ed] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7b5a3d]">
+    <div class="mt-4 inline-flex rounded-full border border-[#d6c3ae] bg-[#fff7ed] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#5f3724]">
       {{ category }}
     </div>
 
@@ -26,7 +26,7 @@ defineProps<{
       {{ name }}
     </h3>
 
-    <p class="mt-1 text-sm leading-6 text-[#6e5b4b] sm:text-base">
+    <p class="mt-1 text-sm leading-6 text-[#4f4134] sm:text-base">
       {{ designation }}
     </p>
   </article>
