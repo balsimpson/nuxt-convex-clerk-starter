@@ -1,6 +1,7 @@
-import { mutation, query } from './_generated/server'
+import { type QueryCtx, mutation, query } from './_generated/server'
 import { v } from 'convex/values'
-import { paginationOptsValidator } from 'convex/server'
+import { paginationOptsValidator, type PaginationOptions } from 'convex/server'
+import type { Doc } from './_generated/dataModel'
 
 const authorValidator = v.object({
   name: v.string(),
@@ -8,6 +9,16 @@ const authorValidator = v.object({
   photo: v.string(),
   uid: v.string()
 })
+
+const adminStatusValidator = v.union(v.literal('draft'), v.literal('published'))
+
+type AdminStatus = 'draft' | 'published'
+
+type AdminListArgs = {
+  paginationOpts: PaginationOptions
+  searchQuery?: string
+  status?: AdminStatus
+}
 
 const postInputValidator = {
   title: v.string(),
@@ -52,6 +63,91 @@ function displayFields(post: { title: string, description: string, image: string
     description: markdownToPlainText(post.description) || contentDescription.slice(0, 180).trim() || post.title.trim(),
     image: extractFirstMarkdownImage(post.content) || post.image.trim()
   }
+}
+
+function mapAdminPost(post: Doc<'posts'>) {
+  const fields = displayFields(post)
+
+  return {
+    _id: post._id,
+    title: post.title,
+    description: fields.description,
+    image: fields.image,
+    slug: post.slug,
+    status: post.status,
+    tags: post.tags,
+    published_at: post.published_at,
+    updated_at: post.updated_at ?? post.last_updated ?? post._creationTime,
+    author: post.author
+  }
+}
+
+async function paginateAdminPosts(ctx: QueryCtx, args: AdminListArgs) {
+  const searchQuery = args.searchQuery?.trim()
+  const status = args.status
+
+  if (searchQuery) {
+    const results = status
+      ? await ctx.db
+          .query('posts')
+          .withSearchIndex('search_title', q => q.search('title', searchQuery).eq('status', status))
+          .paginate(args.paginationOpts)
+      : await ctx.db
+          .query('posts')
+          .withSearchIndex('search_title', q => q.search('title', searchQuery))
+          .paginate(args.paginationOpts)
+
+    return {
+      ...results,
+      page: results.page.map(mapAdminPost)
+    }
+  }
+
+  if (status) {
+    const indexName = status === 'draft'
+      ? 'by_status_and_updated_at'
+      : 'by_status_and_published_at'
+
+    const results = await ctx.db
+      .query('posts')
+      .withIndex(indexName, q => q.eq('status', status))
+      .order('desc')
+      .paginate(args.paginationOpts)
+
+    return {
+      ...results,
+      page: results.page.map(mapAdminPost)
+    }
+  }
+
+  const results = await ctx.db
+    .query('posts')
+    .withIndex('by_published_at')
+    .order('desc')
+    .paginate(args.paginationOpts)
+
+  return {
+    ...results,
+    page: results.page.map(mapAdminPost)
+  }
+}
+
+async function countPostsByStatus(ctx: QueryCtx, status: AdminStatus) {
+  const query = status === 'draft'
+    ? ctx.db
+        .query('posts')
+        .withIndex('by_status_and_updated_at', q => q.eq('status', status))
+    : ctx.db
+        .query('posts')
+        .withIndex('by_status_and_published_at', q => q.eq('status', status))
+
+  let count = 0
+
+  for await (const _ of query) {
+    count += 1
+  }
+
+  return count
 }
 
 export const latest = query({
@@ -215,35 +311,30 @@ export const listForAdmin = query({
     searchQuery: v.optional(v.string())
   },
   handler: async (ctx, args) => {
-    const searchQuery = args.searchQuery?.trim()
-    const results = searchQuery
-      ? await ctx.db
-          .query('posts')
-          .withSearchIndex('search_title', q => q.search('title', searchQuery))
-          .paginate(args.paginationOpts)
-      : await ctx.db
-          .query('posts')
-          .withIndex('by_published_at')
-          .order('desc')
-          .paginate(args.paginationOpts)
+    return await paginateAdminPosts(ctx, args)
+  }
+})
+
+export const listForAdminByStatus = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+    searchQuery: v.optional(v.string()),
+    status: adminStatusValidator
+  },
+  handler: async (ctx, args) => {
+    return await paginateAdminPosts(ctx, args)
+  }
+})
+
+export const statusCounts = query({
+  args: {},
+  handler: async (ctx) => {
+    const published = await countPostsByStatus(ctx, 'published')
+    const draft = await countPostsByStatus(ctx, 'draft')
 
     return {
-      ...results,
-      page: results.page.map((post) => {
-        const fields = displayFields(post)
-
-        return {
-          _id: post._id,
-          title: post.title,
-          description: fields.description,
-          image: fields.image,
-          slug: post.slug,
-          status: post.status,
-          tags: post.tags,
-          published_at: post.published_at,
-          author: post.author
-        }
-      })
+      published,
+      draft
     }
   }
 })

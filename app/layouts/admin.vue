@@ -1,4 +1,7 @@
 <script setup lang="ts">
+const { user } = useUser()
+const clerk = useClerk()
+
 const navItems = [
   {
     label: 'Overview',
@@ -9,8 +12,32 @@ const navItems = [
     label: 'Team',
     to: '/admin/team',
     icon: 'i-lucide-users'
+  },
+  {
+    label: 'Contact',
+    to: '/admin/contact',
+    icon: 'i-lucide-contact'
   }
 ]
+
+const displayName = computed(() => {
+  const fullName = user.value?.fullName?.trim()
+
+  if (fullName) return fullName
+
+  const firstName = user.value?.firstName?.trim()
+  const lastName = user.value?.lastName?.trim()
+  const name = [firstName, lastName].filter(Boolean).join(' ')
+
+  if (name) return name
+
+  return user.value?.primaryEmailAddress?.emailAddress ?? 'Account'
+})
+
+const handleSignOut = async () => {
+  await clerk.value?.signOut()
+  await navigateTo('/')
+}
 </script>
 
 <template>
@@ -69,16 +96,26 @@ const navItems = [
       />
 
       <template #footer="{ collapsed }">
-        <UButton
-          to="/"
-          label="Open site"
-          icon="i-lucide-arrow-right"
-          color="neutral"
-          variant="soft"
-          :block="!collapsed"
-          :square="collapsed"
-          class="justify-center"
-        />
+        <div class="space-y-2">
+          <p
+            v-if="!collapsed"
+            class="truncate text-sm font-medium text-[#2f2118]"
+          >
+            {{ displayName }}
+          </p>
+
+          <UButton
+            color="primary"
+            variant="soft"
+            :label="collapsed ? undefined : 'Sign out'"
+            icon="i-lucide-log-out"
+            :title="displayName"
+            :block="!collapsed"
+            :square="collapsed"
+            class="justify-center"
+            @click="handleSignOut"
+          />
+        </div>
       </template>
     </UDashboardSidebar>
 
@@ -93,7 +130,7 @@ const navItems = [
         >
           <template #right>
             <UBadge
-              color="neutral"
+              color="primary"
               variant="soft"
             >
               CMS

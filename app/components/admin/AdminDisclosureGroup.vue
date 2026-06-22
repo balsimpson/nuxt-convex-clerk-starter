@@ -29,7 +29,7 @@ const open = ref(props.defaultOpen)
       <UButton
         :icon="open ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
         :label="open ? 'Hide' : 'Show'"
-        color="neutral"
+        color="primary"
         variant="ghost"
         size="sm"
         @click="open = !open"

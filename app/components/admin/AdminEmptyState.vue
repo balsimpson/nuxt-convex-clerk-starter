@@ -36,14 +36,14 @@ defineProps<{
         <UButton
           v-if="actionTo"
           :to="actionTo"
-          color="neutral"
+          color="primary"
           variant="outline"
           :label="actionLabel"
         />
 
         <UButton
           v-else
-          color="neutral"
+          color="primary"
           variant="outline"
           :label="actionLabel"
           @click="$emit('action')"

@@ -526,7 +526,7 @@ onMounted(() => {
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <UButton
                 to="/admin"
-                color="neutral"
+                color="primary"
                 variant="ghost"
                 size="sm"
                 icon="i-lucide-arrow-left"
@@ -539,7 +539,7 @@ onMounted(() => {
                 <UButton
                   v-if="publicPostUrl"
                   :to="publicPostUrl"
-                  color="neutral"
+                  color="primary"
                   variant="outline"
                   size="sm"
                   icon="i-lucide-arrow-up-right"
@@ -548,7 +548,7 @@ onMounted(() => {
                 </UButton>
 
                 <UButton
-                  color="neutral"
+                  color="primary"
                   variant="soft"
                   size="sm"
                   icon="i-lucide-settings"
@@ -632,7 +632,7 @@ onMounted(() => {
                 class="w-full"
               />
               <UButton
-                color="neutral"
+                color="primary"
                 variant="outline"
                 label="Use title"
                 icon="i-lucide-sparkles"
@@ -683,7 +683,7 @@ onMounted(() => {
 
       <template #footer>
         <UButton
-          color="neutral"
+          color="primary"
           variant="ghost"
           @click="isDetailsOpen = false"
         >

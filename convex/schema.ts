@@ -22,9 +22,11 @@ export default defineSchema({
   })
     .index('by_slug', ['slug'])
     .index('by_status_and_published_at', ['status', 'published_at'])
+    .index('by_status_and_updated_at', ['status', 'updated_at'])
     .index('by_published_at', ['published_at'])
     .searchIndex('search_title', {
-      searchField: 'title'
+      searchField: 'title',
+      filterFields: ['status']
     }),
   contactSubmissions: defineTable({
     name: v.string(),
@@ -34,6 +36,14 @@ export default defineSchema({
     message: v.string(),
     createdAt: v.number()
   }),
+  contactSettings: defineTable({
+    key: v.string(),
+    addressLines: v.array(v.string()),
+    phoneNumbers: v.array(v.string()),
+    emails: v.array(v.string()),
+    officeHours: v.array(v.string()),
+    updatedAt: v.number()
+  }).index('by_key', ['key']),
   team: defineTable({
     fullname: v.string(),
     designation: v.string(),

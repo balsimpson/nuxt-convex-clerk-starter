@@ -328,7 +328,7 @@ watch(() => props.category, (category) => {
               <div class="min-w-0 flex-1 space-y-2">
                 <div class="flex flex-wrap gap-2">
                   <UButton
-                    color="neutral"
+                    color="primary"
                     variant="outline"
                     size="sm"
                     icon="i-lucide-upload"
@@ -338,7 +338,7 @@ watch(() => props.category, (category) => {
 
                   <UButton
                     v-if="previewImageUrl"
-                    color="neutral"
+                    color="primary"
                     variant="ghost"
                     size="sm"
                     icon="i-lucide-x"
@@ -370,7 +370,7 @@ watch(() => props.category, (category) => {
 
     <template #footer="{ close }">
       <UButton
-        color="neutral"
+        color="primary"
         variant="outline"
         label="Close"
         @click="closeModal(close)"

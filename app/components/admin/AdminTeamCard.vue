@@ -66,7 +66,7 @@ const emit = defineEmits<{
     <div class="flex shrink-0 items-center gap-0.5">
       <UButton
         icon="i-lucide-pencil"
-        color="neutral"
+        color="primary"
         variant="ghost"
         size="xs"
         :disabled="props.isDeleting"

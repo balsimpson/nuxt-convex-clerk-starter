@@ -63,13 +63,12 @@
 
                 <UFormField
                   label="Email address"
-                  required
                   class="w-full sm:col-span-1"
                 >
                   <UInput
                     v-model="contactForm.email"
                     type="email"
-                    required
+                    placeholder="you@example.com"
                     class="w-full"
                   />
                 </UFormField>
@@ -81,6 +80,7 @@
                   <UInput
                     v-model="contactForm.phone"
                     type="tel"
+                    placeholder="+91 98765 43210"
                     class="w-full"
                   />
                 </UFormField>
@@ -113,71 +113,72 @@
 
             <div class="border-t border-[#d9c9b7] pt-8 lg:border-t-0 lg:border-l lg:pl-8">
               <div class="space-y-6">
-                <div>
+                <div v-if="contactSettings.addressLines.length">
                   <p class="text-xs font-semibold uppercase text-[#5f3724]">
                     Address
                   </p>
                   <p class="mt-3 text-sm leading-7 text-[#4f4134]">
-                    1/F, 35 Anjanappa Complex Hennur Main Road,
-                    <br>
-                    Lingarajapuram
-                    <br>
-                    Bangalore 560 084
-                    <br>
-                    India
+                    <template
+                      v-for="(line, index) in contactSettings.addressLines"
+                      :key="`${line}-${index}`"
+                    >
+                      {{ line }}
+                      <br v-if="index < contactSettings.addressLines.length - 1">
+                    </template>
                   </p>
                 </div>
 
-                <div class="border-t border-[#d9c9b7] pt-6">
+                <div
+                  v-if="contactSettings.phoneNumbers.length"
+                  class="border-t border-[#d9c9b7] pt-6"
+                >
                   <p class="text-xs font-semibold uppercase text-[#5f3724]">
                     Phone
                   </p>
                   <div class="mt-3 space-y-2 text-sm leading-7 text-[#4f4134]">
                     <a
-                      href="tel:+918025473922"
+                      v-for="phone in contactSettings.phoneNumbers"
+                      :key="phone"
+                      :href="phoneHref(phone)"
                       class="block transition hover:text-[#8f6240]"
                     >
-                      +91-80-25473922
-                    </a>
-                    <a
-                      href="tel:+918025492856"
-                      class="block transition hover:text-[#8f6240]"
-                    >
-                      +91-80-25492856
+                      {{ phone }}
                     </a>
                   </div>
                 </div>
 
-                <div class="border-t border-[#d9c9b7] pt-6">
+                <div
+                  v-if="contactSettings.emails.length"
+                  class="border-t border-[#d9c9b7] pt-6"
+                >
                   <p class="text-xs font-semibold uppercase text-[#5f3724]">
                     Email
                   </p>
                   <div class="mt-3 space-y-2 text-sm leading-7 text-[#4f4134]">
                     <a
-                      href="mailto:contact@sichrem.org"
+                      v-for="email in contactSettings.emails"
+                      :key="email"
+                      :href="`mailto:${email}`"
                       class="block transition hover:text-[#8f6240]"
                     >
-                      contact@sichrem.org
-                    </a>
-                    <a
-                      href="mailto:msichrem@gmail.com"
-                      class="block transition hover:text-[#8f6240]"
-                    >
-                      msichrem@gmail.com
+                      {{ email }}
                     </a>
                   </div>
                 </div>
 
-                <div class="border-t border-[#d9c9b7] pt-6">
+                <div
+                  v-if="contactSettings.officeHours.length"
+                  class="border-t border-[#d9c9b7] pt-6"
+                >
                   <p class="text-xs font-semibold uppercase text-[#5f3724]">
                     Office Hours
                   </p>
                   <div class="mt-3 space-y-3 text-sm leading-7 text-[#4f4134]">
-                    <p>
-                      Monday - Friday: 10.00am to 5.00pm
-                    </p>
-                    <p>
-                      Staff on Field Work - Office will be closed on Saturday
+                    <p
+                      v-for="line in contactSettings.officeHours"
+                      :key="line"
+                    >
+                      {{ line }}
                     </p>
                   </div>
                 </div>
@@ -193,7 +194,8 @@
 <script setup lang="ts">
 import type { BreadcrumbItem } from '@nuxt/ui'
 import { api } from '../../convex/_generated/api'
-import { useConvexMutation } from 'convex-vue'
+import type { ContactSettings } from '../../convex/contact'
+import { useConvexMutation, useConvexQuery } from 'convex-vue'
 
 const breadcrumbItems = [
   {
@@ -216,12 +218,28 @@ const contactForm = reactive({
 const submitSuccess = ref('')
 const submitError = ref('')
 
+const emptyContactSettings: ContactSettings = {
+  addressLines: [],
+  phoneNumbers: [],
+  emails: [],
+  officeHours: [],
+  updatedAt: null
+}
+
+const { data: savedContactSettings } = useConvexQuery(api.contact.getSettings, {})
+
 const {
   mutate: submitContact,
   isPending
 } = useConvexMutation(api.contact.submit)
 
 const displayError = computed(() => submitError.value)
+const contactSettings = computed(() => savedContactSettings.value ?? emptyContactSettings)
+
+function phoneHref(phone: string) {
+  const normalized = phone.replace(/(?!^\+)\D/g, '')
+  return `tel:${normalized}`
+}
 
 function resetContactForm() {
   contactForm.name = ''
@@ -235,11 +253,19 @@ async function submitContactForm() {
   submitSuccess.value = ''
   submitError.value = ''
 
+  const email = contactForm.email.trim()
+  const phone = contactForm.phone.trim()
+
+  if (!email && !phone) {
+    submitError.value = 'Please enter an email address or phone number.'
+    return
+  }
+
   try {
     await submitContact({
       name: contactForm.name,
-      email: contactForm.email,
-      phone: contactForm.phone,
+      email,
+      phone,
       subject: contactForm.subject,
       message: contactForm.message
     })

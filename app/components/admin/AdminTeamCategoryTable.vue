@@ -68,7 +68,7 @@ const displayError = computed(() => error.value?.message || reorderError.value?.
         </h3>
         <UBadge
           v-if="isSortableCategory"
-          color="neutral"
+          color="primary"
           variant="soft"
         >
           {{ teamItems?.length || 0 }}
